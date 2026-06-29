@@ -44,7 +44,24 @@
         #quickInvoiceEntry { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); margin-bottom: 15px; display: none; }
         
         .step-summary { background: #e8f8f5; border: 1px solid #1abc9c; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;} .step-summary-text { font-size: 13px; color: #2c3e50;}
-        @media print { @page { size: A4; margin: 15mm; } body { background: none; } .tabs, .system-topbar, #section-bneb, #section-wizard, #section-objects, #section-archive, .print-btn-group, .error-msg, #quickInvoiceEntry { display: none !important; } #section-preview { display: block !important; padding: 0;} .preview-doc { box-shadow: none !important; padding: 0 !important; margin: 0 !important; font-size: 13px !important; } table.prot-table { font-size: 12px !important; } table.prot-table th { background-color: #e0e0e0 !important; -webkit-print-color-adjust: exact; } .letterhead { border-bottom: 2px solid #000 !important; } }
+        
+        /* НОВ КОМПАКТЕН CSS ЗА ПЕЧАТ НА 1 СТРАНИЦА */
+        @media print { 
+            @page { size: A4; margin: 10mm 12mm 10mm 12mm; } 
+            body { background: none; font-size: 11px !important; } 
+            .tabs, .system-topbar, #section-bneb, #section-wizard, #section-objects, #section-archive, .print-btn-group, .error-msg, #quickInvoiceEntry { display: none !important; } 
+            #section-preview { display: block !important; padding: 0 !important; margin: 0 !important;} 
+            .preview-doc { box-shadow: none !important; padding: 0 !important; margin: 0 !important; font-size: 11px !important; page-break-inside: avoid; } 
+            table.prot-table { font-size: 11px !important; margin: 8px 0 !important; } 
+            table.prot-table th, table.prot-table td { padding: 4px 5px !important; } 
+            table.prot-table th { background-color: #e0e0e0 !important; -webkit-print-color-adjust: exact; }
+            .letterhead { border-bottom: 2px solid #000 !important; margin-bottom: 10px !important; padding-bottom: 5px !important; } 
+            .prot-header { margin-bottom: 10px !important; } 
+            .prot-header h1 { font-size: 14px !important; }
+            .methodology-box { margin-bottom: 8px !important; padding: 5px 8px !important; font-size: 9px !important; } 
+            .read-block { margin-bottom: 5px !important; padding: 4px 8px !important; } 
+            .signatures { margin-top: 15px !important; page-break-inside: avoid;} 
+        }
     </style>
 </head>
 <body>
@@ -130,6 +147,7 @@
     </section>
 
     <section id="section-objects" class="tab-content">
+        
         <div class="card card-db">
             <h3>Ревизия на обекти</h3>
             <div class="info-box">Добавяйте или редактирате обекти и електромери тук.</div>
@@ -137,7 +155,7 @@
             <div id="objectEditor">
                 <h3 id="editorTitle">Редакция на обект</h3><input type="hidden" id="editOriginalName">
                 <div class="form-group"><label>Име на Обекта (Кратко)</label><input type="text" id="editName" placeholder="Напр. Офис 1"></div>
-                <div class="form-group"><label>Наемодател (Титуляр)</label><select id="editProvider"><option value="„Резиденшъл Парк Лозен“ ЕООД">Резиденшъл Парк Лозен ЕООД</option><option value="„Линднер Имобилиен Мениджмънт“ ЕООД">Линднер Имобилиен Мениджмънт ЕООД</option><option value="„Линднер Фасилити Мениджмънт“ ЕООД">Линднер Фасилити Мениджмънт ЕООД</option><option value="„Лозен Тех Парк“ ЕООД">Лозен Тех Парк ЕООД</option><option value="„Кампус Лозен Парк“ ЕООД">Кампус Лозен Парк ЕООД</option></select></div>
+                <div class="form-group"><label>Наемодател (Титуляр)</label><select id="editProvider"></select></div>
                 <div class="form-group"><label>Захранващ обект</label><input type="text" id="editSource" placeholder="Напр. РПЛ - ТП3"></div>
                 <div class="form-group"><label>Клиент / Ползвател</label><input type="text" id="editClient" placeholder="Име на фирма"></div>
                 <div class="form-group"><label>Електромер (Модел и №)</label><input type="text" id="editMeter" placeholder="Напр. EC30 №12345"></div>
@@ -146,6 +164,26 @@
                 <div class="row"><button type="button" id="btnSaveObj" class="btn-green" onclick="saveObject()">ЗАПАЗИ ОБЕКТ</button><button type="button" class="btn-cancel" onclick="closeObjectEditor()">ОТКАЗ</button></div>
             </div>
             <table class="data-table"><thead><tr><th>Обект / Клиент</th><th>Електромер</th><th>Действие</th></tr></thead><tbody id="objectsTableBody"></tbody></table>
+        </div>
+
+        <div class="card card-db" style="margin-top: 20px;">
+            <h3>🏢 Ревизия на Фирми Наемодатели</h3>
+            <div class="info-box">Добавяйте или редактирате фирмите наемодатели, техните ЕИК, ДДС номера и официални адреси. Данните се записват в таб "Companies".</div>
+            <button type="button" class="btn-green" style="margin-bottom: 15px;" onclick="openCompanyEditor('')">+ ДОБАВИ НОВА ФИРМА</button>
+            
+            <div id="companyEditor" style="display: none; background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #dcdde1; margin-bottom: 15px;">
+                <h3 id="compEditorTitle">Добавяне на фирма</h3>
+                <div class="form-group"><label>Име на Фирмата (точно както е по договор)</label><input type="text" id="compName" placeholder="Напр. „Резиденшъл Парк Лозен“ ЕООД"></div>
+                <div class="form-group"><label>ЕИК / Булстат</label><input type="text" id="compEik" placeholder="Напр. 175145573"></div>
+                <div class="form-group"><label>ДДС Номер</label><input type="text" id="compVat" placeholder="Напр. BG175145573"></div>
+                <div class="form-group"><label>Официален Адрес</label><input type="text" id="compAddress" placeholder="Пълен адрес на управление"></div>
+                <div class="row"><button type="button" id="btnSaveComp" class="btn-green" onclick="saveCompany()">ЗАПАЗИ ФИРМА</button><button type="button" class="btn-cancel" onclick="closeCompanyEditor()">ОТКАЗ</button></div>
+            </div>
+            
+            <table class="data-table">
+                <thead><tr><th>Фирма Наемодател</th><th>ЕИК / ДДС / Адрес</th><th style="text-align:center; width:80px;">Действие</th></tr></thead>
+                <tbody id="companiesTableBody"></tbody>
+            </table>
         </div>
 
         <div class="card card-db" style="margin-top: 20px;">
@@ -224,21 +262,13 @@
 
 <script>
     // ==========================================
-    // ВАЖНО: ПОСТАВЕТЕ НОВИЯ WEB APP URL ТУК:
+    // ВАЖНО: ТУК Е ВАШИЯТ НОВ WEB APP URL:
     // ==========================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbwv-IrHY2JzwIfwPDjvSLK_k3a7j1GBR9CPh0R32GDA_iKdE5bHngQr5L8w60KYY5Xd/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbzRF_XpxDSrtz_N6Ax3UxeWBYIEiEbuKtedLyPKyHZDMKO-3had_GfYKdYWnWivoTwJ/exec"; 
 
-    let pricesDB = {}, objectsDB = {}, issuersDB = [], archiveDB = [], currentUser = "";
+    let pricesDB = {}, objectsDB = {}, issuersDB = [], archiveDB = [], companiesDB = {}, currentUser = "";
     let isReadOnly = true; 
-    let currentProtocolData = { date: "", client: "", totalNoVat: 0, period: "", lastRead: "" }, isWizardValid = false;
-
-    const companiesData = {
-        "„Резиденшъл Парк Лозен“ ЕООД": { eik: "175145573", vat: "BG175145573", address: "с. Лозен, Лозен Тех Парк, ул. Лозен Парк 2, Сграда 1, офис 1" },
-        "„Линднер Имобилиен Мениджмънт“ ЕООД": { eik: "131575345", vat: "BG131575345", address: "с. Лозен, Лозен Парк 2, Сграда 1, офис 1" },
-        "„Линднер Фасилити Мениджмънт“ ЕООД": { eik: "205519499", vat: "BG205519499", address: "с. Лозен, Лозен Парк 2, Сграда 1, офис 1" },
-        "„Лозен Тех Парк“ ЕООД": { eik: "207364617", vat: "BG207364617", address: "с. Лозен, Лозен Парк 2, Сграда 1, офис 1" },
-        "„Кампус Лозен Парк“ ЕООД": { eik: "207364738", vat: "BG207364738", address: "с. Лозен, Лозен Парк 2, Сграда 1, офис 1" }
-    };
+    let currentProtocolData = { date: "", client: "", totalNoVat: 0, period: "", lastRead: "", realReadDate: "", realReadValue: "" }, isWizardValid = false;
 
     // --- ФУНКЦИЯ ЗА КОМУНИКАЦИЯ С БЕКЕНДА (FETCH API) ---
     async function callAPI(action, params = {}) {
@@ -261,8 +291,8 @@
     function enableBtn(btnId) { const btn = document.getElementById(btnId); if(btn) { btn.disabled = false; btn.innerText = btn.dataset.origText; } }
 
     window.onload = function() {
-        if (API_URL === "ТУК_ПОСТАВЕТЕ_НОВИЯ_WEB_APP_URL") {
-            showError("Моля, отворете кода и добавете валиден API_URL (ред 355)."); return;
+        if (!API_URL.includes("script.google.com")) {
+            showError("Моля, отворете кода и добавете валиден API_URL."); return;
         }
 
         showLoader("Синхронизация с базата данни...");
@@ -276,11 +306,12 @@
             .then(res => {
                 if (res.status === "error") throw new Error(res.message);
                 pricesDB = res.prices; objectsDB = res.objects; issuersDB = res.issuers; archiveDB = res.archive;
+                companiesDB = res.companies || {}; // Зареждаме фирмите от базата
                 
                 currentUser = "Гост"; isReadOnly = true;
                 document.getElementById('userInfo').innerHTML = `<div style="display:flex; align-items:center; gap:5px;">🔒 Данните са скрити. <input type="password" id="customEmailInput" placeholder="Въведете код..." style="height:25px; padding:2px 5px; font-size:12px; width:120px; border-radius:4px; border:none; color:black;"> <button type="button" onclick="unlockForm()" style="height:25px; background:var(--success); color:white; border:none; padding:0 8px; font-size:11px; border-radius:4px; cursor:pointer; width:auto; margin:0; font-weight:bold;">Отключи</button></div>`;
                 
-                renderPriceTable(); renderObjectsTable(); renderIssuersTable(); initDropdowns(); renderArchiveTable();
+                renderPriceTable(); renderObjectsTable(); renderCompaniesTable(); renderIssuersTable(); initDropdowns(); renderArchiveTable();
                 hideLoader();
             })
             .catch(err => showError("Грешка в сървъра: " + err.message));
@@ -294,7 +325,7 @@
         currentUser = val; isReadOnly = false;
         document.getElementById('userInfo').innerHTML = `👤 🔓 Режим: Редакция | <strong>${currentUser}</strong>`;
         
-        initDropdowns(); renderPriceTable(); renderObjectsTable(); renderIssuersTable(); renderArchiveTable();
+        initDropdowns(); renderPriceTable(); renderObjectsTable(); renderCompaniesTable(); renderIssuersTable(); renderArchiveTable();
         alert("Успешно отключване! Системата вече показва всички данни.");
     }
 
@@ -311,16 +342,24 @@
     }
 
     function initDropdowns() {
-        const os = document.getElementById('objectSelect'), ms = document.getElementById('meterSelect'), is = document.getElementById('issuerSelect');
+        const os = document.getElementById('objectSelect'), ms = document.getElementById('meterSelect'), is = document.getElementById('issuerSelect'), ep = document.getElementById('editProvider');
         if (isReadOnly) {
-            os.innerHTML = '<option value="" disabled selected>🔒 Отключете системата, за да видите обектите</option>';
+            os.innerHTML = '<option value="" disabled selected>🔒 Отключете системата</option>';
             ms.innerHTML = '<option value="" disabled selected>🔒 Отключете системата</option>';
             is.innerHTML = '<option value="" disabled selected>🔒 Отключете системата</option>';
+            if(ep) ep.innerHTML = '<option value="" disabled selected>🔒 Заключено</option>';
             return;
         }
         os.innerHTML = '<option value="" disabled selected>-- Изберете обект --</option>'; ms.innerHTML = '<option value="" disabled selected>-- Изчаква -</option>'; is.innerHTML = '<option value="" disabled selected>-- Изберете лице --</option>';
         Object.keys(objectsDB).sort().forEach(n => os.appendChild(new Option(n, n)));
         issuersDB.forEach(n => is.appendChild(new Option(n, n)));
+        
+        // Динамично пълнене на наемодателите
+        if(ep) {
+            ep.innerHTML = '<option value="" disabled selected>-- Изберете наемодател --</option>';
+            Object.keys(companiesDB).sort().forEach(c => ep.appendChild(new Option(c, c)));
+        }
+
         const d = new Date(), cm = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2);
         document.getElementById('billingStartMonth').value = cm; document.getElementById('billingEndMonth').value = cm;
     }
@@ -388,7 +427,19 @@
         }
         
         document.querySelectorAll('.kwh-val').forEach(f => f.innerText = cTot);
-        if (companiesData[p]) { document.getElementById('lhName').innerText = p.replace(/„|“/g, '').toUpperCase(); document.getElementById('lhEik').innerText = companiesData[p].eik; document.getElementById('lhVat').innerText = companiesData[p].vat; document.getElementById('lhAddress').innerText = companiesData[p].address; }
+        
+        // Взимане на данни за фирмата от базата данни (cloud)
+        if (companiesDB[p]) { 
+            document.getElementById('lhName').innerText = p.replace(/„|“/g, '').toUpperCase(); 
+            document.getElementById('lhEik').innerText = companiesDB[p].eik; 
+            document.getElementById('lhVat').innerText = companiesDB[p].vat; 
+            document.getElementById('lhAddress').innerText = companiesDB[p].address; 
+        } else {
+            document.getElementById('lhName').innerText = p.toUpperCase(); 
+            document.getElementById('lhEik').innerText = "Н/Д"; 
+            document.getElementById('lhVat').innerText = "Н/Д"; 
+            document.getElementById('lhAddress').innerText = "Фирмата не е намерена в таб Companies";
+        }
         
         let dType = document.getElementById('documentType').value, pDate = formatDate(new Date(document.getElementById('protocolDate').value)), mInfo = document.getElementById('meterSelect').options[0]?.text, bp = (document.getElementById('billingStartMonth').value === document.getElementById('billingEndMonth').value) ? document.getElementById('billingStartMonth').value : `${document.getElementById('billingStartMonth').value} до ${document.getElementById('billingEndMonth').value}`;
         document.getElementById('outDocTitle').innerText = dType === "protocol" ? "ПРОТОКОЛ ЗА ПРЕФАКТУРИРАНЕ НА РАЗХОДИ" : "УВЕДОМЛЕНИЕ ЗА РАЗПРЕДЕЛЕНИЕ НА РАЗХОДИ";
@@ -402,7 +453,37 @@
         document.getElementById('introText').innerHTML = introHTML;
         
         document.getElementById('sigIssuerName').innerText = isN;
-        document.getElementById('readsInfoBlock').innerHTML = (c < 1) ? `<div class="read-block read-interp"><div style="font-size: 10px;">ИЗЧИСЛЕН ОТЧЕТ ЗА ФАКТУРИРАНЕ (${tarDays} дни: ${formatDate(sDt)} – ${formatDate(tDt)} г.)</div>Стар отчет (база): <strong>${oTxt}</strong><br>Изчислен нов отчет: <strong>${cnTxt}</strong><br>База за фактуриране: <strong>${cTot} kWh</strong></div>` : `<div class="read-block read-real"><div style="font-size: 10px;">ОТЧЕТЕН ПЕРИОД (${tDays} дни: ${formatDate(sDt)} – ${formatDate(eDt)} г.)</div>Стар отчет: <strong>${oTxt}</strong><br>Нов отчет: <strong>${nTxt}</strong><br>Консумация за фактуриране: <strong>${cTot} kWh</strong></div>`;
+        
+        // НОВ БЛОК ЗА РЕАЛНИ И ИЗЧИСЛЕНИ ОТЧЕТИ
+        let sDtStr = formatDate(sDt);
+        let eDtStr = formatDate(eDt);
+        let tDtStr = formatDate(tDt);
+
+        let readsHTML = `
+            <div class="read-block read-real" style="margin-bottom: 6px; border-left: 4px solid #34495e; background: #f8f9fa; padding: 6px 10px;">
+                <strong>📋 Реални физически отчети (снети на терен):</strong><br>
+                • Стар физически отчет (на дата <strong>${sDtStr} г.</strong>): <span class="highlight">${oTxt}</span><br>
+                • Нов физически отчет (на дата <strong>${eDtStr} г.</strong>): <span class="highlight">${nTxt}</span>
+            </div>
+        `;
+
+        if (c < 1) {
+            readsHTML += `
+                <div class="read-block read-interp" style="border-left: 4px solid var(--warning); background: #fffbf2; padding: 6px 10px;">
+                    <strong>🧮 Пропорционално изчислен отчет за фактуриране (до края на месеца - ${tDtStr} г.):</strong><br>
+                    • Изчислено показание към края на периода: <span class="highlight">${cnTxt}</span><br>
+                    • База за префактуриране за периода (${tarDays} дни от общо ${tDays}): <strong>${cTot} kWh</strong>
+                </div>
+            `;
+        } else {
+            readsHTML += `
+                <div class="read-block read-real" style="border-left: 4px solid var(--success); background: #e8f8f5; padding: 6px 10px;">
+                    • Общо консумация за фактуриране (${tDays} дни): <strong>${cTot} kWh</strong>
+                </div>
+            `;
+        }
+
+        document.getElementById('readsInfoBlock').innerHTML = readsHTML;
         
         const mP = parseFloat(document.getElementById('marginPrice').value) || 0, tI = cTot * avg, tM = cTot * mP, gN = tI + tM, v = gN * 0.20, gW = gN + v;
         document.getElementById('outIbexPrice').innerText = avg.toFixed(4); document.getElementById('totalIbex').innerText = tI.toFixed(2);
@@ -415,21 +496,30 @@
         document.getElementById('validationErrorDoc').style.display = 'none';
         
         isWizardValid = true; 
-        currentProtocolData = { date: pDate, client: document.getElementById('client').value, totalNoVat: gN, period: bp, lastRead: (c < 1) ? cnTxt : nTxt }; 
+        
+        // Добавено записване на реалния отчет за архива
+        currentProtocolData = { 
+            date: pDate, 
+            client: document.getElementById('client').value, 
+            totalNoVat: gN, 
+            period: bp, 
+            lastRead: (c < 1) ? cnTxt : nTxt,
+            realReadDate: document.getElementById('endDate').value,
+            realReadValue: nTxt
+        }; 
         openTab('section-preview', document.querySelectorAll('.tab-btn')[3]);
     }
 
+    // --- ФУНКЦИИ БНЕБ ---
     function addPrice() {
         if (!checkAccess()) return;
         const k = `${document.getElementById('dbYear').value}-${document.getElementById('dbMonth').value}`, p = document.getElementById('dbPrice').value;
         if(!p || p <= 0) return; 
-        
         disableBtn('btnSavePrice'); showLoader("Записване...");
         callAPI('savePrice', { period: k, price: p, author: currentUser })
             .then(r => { pricesDB = r; renderPriceTable(); document.getElementById('dbPrice').value = ''; hideLoader(); enableBtn('btnSavePrice'); })
             .catch(e => { alert(e.message); hideLoader(); enableBtn('btnSavePrice'); });
     }
-    
     function removePrice(k) { 
         if (!checkAccess()) return;
         if(confirm("Изтриване?")) { 
@@ -439,25 +529,22 @@
                 .catch(e => { alert(e.message); hideLoader(); });
         } 
     }
-    
     function renderPriceTable() { 
         const b = document.getElementById('priceTableBody'); b.innerHTML = ''; 
         if (isReadOnly) { b.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 20px; color:#7f8c8d;">🔒 Данните са скрити. Моля, отключете системата.</td></tr>`; return; }
-        Object.keys(pricesDB).sort().reverse().forEach(k => { b.innerHTML += `<tr><td>${k}</td><td>${parseFloat(pricesDB[k]).toFixed(2)} €</td><td class="action-delete action-btn" onclick="removePrice('${k}')">✖</td></tr>`; }); 
+        Object.keys(pricesDB).sort().reverse().forEach(k => { b.innerHTML += `<tr><td>${k}</td><td>${parseFloat(pricesDB[k]).toFixed(2)} €</td><td class="action-btn action-delete" onclick="removePrice('${k}')">✖</td></tr>`; }); 
     }
 
+    // --- ФУНКЦИИ ОБЕКТИ ---
     function saveObject() {
         if (!checkAccess()) return;
         const n = document.getElementById('editName').value.trim(); if(!n) return; 
-        
         disableBtn('btnSaveObj'); showLoader("Запазване...");
         const p = document.getElementById('editProvider').value, s = document.getElementById('editSource').value, c = document.getElementById('editClient').value, m = document.getElementById('editMeter').value, a = document.getElementById('editAddress').value, t = document.getElementById('editTariffs').value, o = document.getElementById('editOriginalName').value;
-        
         callAPI('saveObject', { objName: n, provider: p, source: s, client: c, meter: m, address: a, tariffs: t, author: currentUser })
             .then(r => { objectsDB = r; closeObjectEditor(); renderObjectsTable(); initDropdowns(); hideLoader(); enableBtn('btnSaveObj'); })
             .catch(e => { alert(e.message); hideLoader(); enableBtn('btnSaveObj'); });
     }
-    
     function deleteObject(k) { 
         if (!checkAccess()) return;
         if(confirm("Изтриване?")) { 
@@ -467,7 +554,6 @@
                 .catch(e => { alert(e.message); hideLoader(); });
         } 
     }
-    
     function openObjectEditor(k) { 
         if (!checkAccess()) return;
         document.getElementById('objectEditor').style.display = 'block'; 
@@ -475,23 +561,67 @@
         else { document.getElementById('editorTitle').innerText = "Добавяне на нов обект"; document.getElementById('editOriginalName').value = ""; document.getElementById('editName').value = ""; document.getElementById('editSource').value = ""; document.getElementById('editClient').value = ""; document.getElementById('editMeter').value = ""; document.getElementById('editAddress').value = ""; document.getElementById('editTariffs').value = "1"; } 
     }
     function closeObjectEditor() { document.getElementById('objectEditor').style.display = 'none'; }
-    
     function renderObjectsTable() { 
         const b = document.getElementById('objectsTableBody'); b.innerHTML = ''; 
         if (isReadOnly) { b.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 20px; color:#7f8c8d;">🔒 Данните са скрити. Моля, отключете системата.</td></tr>`; return; }
         Object.keys(objectsDB).sort().forEach(k => { b.innerHTML += `<tr><td><strong>${k}</strong><br><span style="font-size:11px;">${objectsDB[k].client}</span></td><td style="font-size:11px;">${objectsDB[k].meter}</td><td style="text-align:center;"><span class="action-btn action-edit" onclick="openObjectEditor('${k}')">✎</span> <span class="action-btn action-delete" onclick="deleteObject('${k}')">🗑</span></td></tr>`; }); 
     }
 
+    // --- ФУНКЦИИ ФИРМИ НАЕМОДАТЕЛИ ---
+    function renderCompaniesTable() {
+        const b = document.getElementById('companiesTableBody'); b.innerHTML = ''; 
+        if (isReadOnly) { b.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 20px; color:#7f8c8d;">🔒 Данните са скрити.</td></tr>`; return; }
+        Object.keys(companiesDB).sort().forEach(k => { 
+            b.innerHTML += `<tr><td><strong>${k}</strong></td><td style="font-size:11px; line-height:1.3;">ЕИК: ${companiesDB[k].eik}<br>ДДС: ${companiesDB[k].vat}<br>Адрес: ${companiesDB[k].address}</td><td style="text-align:center;"><span class="action-btn action-edit" onclick="openCompanyEditor('${k}')">✎</span> <span class="action-btn action-delete" onclick="deleteCompany('${k}')">🗑</span></td></tr>`; 
+        }); 
+    }
+    function openCompanyEditor(k) {
+        if (!checkAccess()) return;
+        document.getElementById('companyEditor').style.display = 'block';
+        if (k && companiesDB[k]) {
+            document.getElementById('compEditorTitle').innerText = "Редакция на фирма";
+            document.getElementById('compName').value = k;
+            document.getElementById('compEik').value = companiesDB[k].eik;
+            document.getElementById('compVat').value = companiesDB[k].vat;
+            document.getElementById('compAddress').value = companiesDB[k].address;
+        } else {
+            document.getElementById('compEditorTitle').innerText = "Добавяне на нова фирма";
+            document.getElementById('compName').value = ""; document.getElementById('compEik').value = ""; document.getElementById('compVat').value = ""; document.getElementById('compAddress').value = "";
+        }
+    }
+    function closeCompanyEditor() { document.getElementById('companyEditor').style.display = 'none'; }
+    function saveCompany() {
+        if (!checkAccess()) return;
+        const name = document.getElementById('compName').value.trim();
+        const eik = document.getElementById('compEik').value.trim();
+        const vat = document.getElementById('compVat').value.trim();
+        const address = document.getElementById('compAddress').value.trim();
+        if(!name || !eik || !address) { alert("Моля попълнете име, ЕИК и адрес!"); return; }
+        
+        disableBtn('btnSaveComp'); showLoader("Запазване на фирма...");
+        callAPI('saveCompany', { name: name, eik: eik, vat: vat, address: address, author: currentUser })
+            .then(r => { companiesDB = r; closeCompanyEditor(); renderCompaniesTable(); initDropdowns(); hideLoader(); enableBtn('btnSaveComp'); })
+            .catch(e => { alert(e.message); hideLoader(); enableBtn('btnSaveComp'); });
+    }
+    function deleteCompany(k) {
+        if (!checkAccess()) return;
+        if(confirm(`Сигурни ли сте, че искате да изтриете фирма "${k}"?`)) {
+            showLoader("Изтриване...");
+            callAPI('deleteCompany', { name: k, author: currentUser })
+                .then(r => { companiesDB = r; renderCompaniesTable(); initDropdowns(); hideLoader(); })
+                .catch(e => { alert(e.message); hideLoader(); });
+        }
+    }
+
+    // --- ФУНКЦИИ СЛУЖИТЕЛИ ---
     function addIssuer() { 
         if (!checkAccess()) return;
         const n = document.getElementById('newIssuerName').value.trim(); if(!n) return; 
-        
         disableBtn('btnSaveIss'); showLoader(); 
         callAPI('addIssuer', { name: n, author: currentUser })
             .then(r => { issuersDB = r; document.getElementById('newIssuerName').value = ''; renderIssuersTable(); initDropdowns(); hideLoader(); enableBtn('btnSaveIss'); })
             .catch(e => { alert(e.message); hideLoader(); enableBtn('btnSaveIss'); });
     }
-    
     function deleteIssuer(n) { 
         if (!checkAccess()) return;
         if(confirm("Изтриване?")) { 
@@ -501,13 +631,13 @@
                 .catch(e => { alert(e.message); hideLoader(); });
         } 
     }
-    
     function renderIssuersTable() { 
         const b = document.getElementById('issuersTableBody'); b.innerHTML = ''; 
         if (isReadOnly) { b.innerHTML = `<tr><td colspan="2" style="text-align:center; padding: 20px; color:#7f8c8d;">🔒 Данните са скрити.</td></tr>`; return; }
         issuersDB.forEach(n => { b.innerHTML += `<tr><td><strong>${n}</strong></td><td style="text-align:center;"><span class="action-btn action-delete" onclick="deleteIssuer('${n}')">✖</span></td></tr>`; }); 
     }
 
+    // --- ФУНКЦИИ АРХИВ ---
     function saveToArchive() {
         if (!checkAccess()) return;
         if (!currentProtocolData.client) return; 
@@ -518,7 +648,20 @@
         let qInvDate = document.getElementById('quickInvDate').value;
         if(qInvDate && qInvDate.includes('-')) { const [y, m, d] = qInvDate.split('-'); qInvDate = `${d}.${m}.${y}`; }
         
-        const rec = { id: Date.now().toString(), date: currentProtocolData.date, client: currentProtocolData.client, totalVat: (currentProtocolData.totalNoVat * 1.20).toFixed(2), invNum: qInvNum, invDate: qInvDate, createdBy: currentUser, period: currentProtocolData.period, lastRead: currentProtocolData.lastRead }; 
+        // Записваме всички данни, включително новите Колони K и L
+        const rec = { 
+            id: Date.now().toString(), 
+            date: currentProtocolData.date, 
+            client: currentProtocolData.client, 
+            totalVat: (currentProtocolData.totalNoVat * 1.20).toFixed(2), 
+            invNum: qInvNum, 
+            invDate: qInvDate, 
+            createdBy: currentUser, 
+            period: currentProtocolData.period, 
+            lastRead: currentProtocolData.lastRead,
+            realReadDate: currentProtocolData.realReadDate,
+            realReadValue: currentProtocolData.realReadValue
+        }; 
         
         callAPI('saveArchiveRecord', { recordStr: JSON.stringify(rec) })
             .then(r => { 
@@ -554,25 +697,14 @@
     
     function openArchiveEditor(id) { 
         if (!checkAccess()) return;
-        
-        // ВАЖНО: Сравняваме ги като String, за да предотвратим грешка с превърнати цифри от Sheets
         const r = archiveDB.find(x => String(x.id) === String(id)); 
         if(!r) return; 
-        
         document.getElementById('archEditId').value = r.id; 
         document.getElementById('archEditInvNum').value = r.invNum || ""; 
         document.getElementById('archEditInvDate').value = "";
-        
         const editor = document.getElementById('archiveEditor');
         editor.style.display = 'block'; 
-        
-        // 100% сигурен метод за скролиране
-        setTimeout(() => {
-            try {
-                window.scrollTo(0, editor.offsetTop - 20);
-                document.getElementById('archEditInvNum').focus();
-            } catch(e) {}
-        }, 100);
+        setTimeout(() => { try { window.scrollTo(0, editor.offsetTop - 20); document.getElementById('archEditInvNum').focus(); } catch(e) {} }, 100);
     }
     
     function closeArchiveEditor() { document.getElementById('archiveEditor').style.display = 'none'; }
@@ -582,7 +714,6 @@
         const i = document.getElementById('archEditId').value, n = document.getElementById('archEditInvNum').value;
         let d = document.getElementById('archEditInvDate').value; 
         if(d && d.includes('-')) { const [y, m, day] = d.split('-'); d = `${day}.${m}.${y}`; }
-        
         disableBtn('btnSaveArchEdit'); showLoader("Запазване..."); 
         callAPI('updateArchiveInvoice', { id: i, invNum: n, invDate: d, author: currentUser })
             .then(r => { archiveDB = r; closeArchiveEditor(); renderArchiveTable(); hideLoader(); enableBtn('btnSaveArchEdit'); })

@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Генератор Префактуриране</title>
+    <title>Генератор Префактуриране (V2.6 - Финал)</title>
     <style>
-        :root { --primary: #2980b9; --primary-dark: #2471a3; --success: #27ae60; --success-dark: #229954; --danger: #e74c3c; --danger-dark: #c0392b; --warning: #f39c12; --warning-dark: #e67e22; --archive-pending: #fff9c4; --archive-pending-border: #f1c40f; --archive-invoiced: #e8f8f5; --archive-invoiced-border: #2ecc71; --bg-body: #f4f7f6; --bg-card: #ffffff; --text-main: #2c3e50; --text-muted: #7f8c8d; --border-light: #ecf0f1; --border-input: #bdc3c7; }
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: var(--bg-body); color: var(--text-main); -webkit-tap-highlight-color: transparent; }
+        :root { --primary: #e67e22; --primary-dark: #d35400; --success: #27ae60; --success-dark: #229954; --danger: #e74c3c; --danger-dark: #c0392b; --warning: #f1c40f; --warning-dark: #f39c12; --bg-body: #f4f7f6; --bg-card: #ffffff; --text-main: #2c3e50; --text-muted: #7f8c8d; --border-light: #ecf0f1; --border-input: #bdc3c7; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: var(--bg-body); color: var(--text-main); -webkit-tap-highlight-color: transparent; transition: background-color 0.4s; }
         .system-topbar { background: #2c3e50; color: #ecf0f1; padding: 10px 15px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; z-index: 101;}
-        .system-topbar strong { color: #3498db; }
-        #loaderOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.95); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 16px; font-weight: bold; color: var(--primary); text-align: center; padding: 20px;}
+        .system-topbar strong { color: var(--primary); font-weight: bold; }
+        .btn-refresh { background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; margin-left: 10px; }
+        .btn-logout { background: var(--danger); color: white; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-left: 10px; }
+        #authOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #2c3e50; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;}
+        .auth-box { background: white; padding: 30px; border-radius: 8px; text-align: center; color: #333; max-width: 300px; width: 90%; }
+        .auth-box input { width: 100%; height: 45px; margin: 15px 0; border: 2px solid #bdc3c7; border-radius: 5px; text-align: center; font-size: 16px; }
+        .auth-box button { background: var(--success); height: 45px; width: 100%; color: white; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; }
+        #loaderOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.95); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; font-size: 16px; font-weight: bold; color: var(--primary); text-align: center;}
         .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .tabs { display: flex; background: var(--bg-card); box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; overflow-x: auto; white-space: nowrap;}
@@ -19,61 +25,78 @@
         .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .card { background: var(--bg-card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; }
-        .card-object { border-top: 4px solid #8e44ad; } .card-price { border-top: 4px solid var(--primary); } .card-db { border-top: 4px solid var(--danger); } .card-archive { border-top: 4px solid var(--success); }
-        h3 { font-size: 14px; color: var(--text-muted); border-bottom: 1px solid var(--border-light); padding-bottom: 8px; text-transform: uppercase; margin-top: 0; letter-spacing: 0.5px;}
+        .card { background: var(--bg-card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; border-top: 4px solid var(--primary); transition: border-color 0.4s; }
+        h3 { font-size: 14px; color: var(--text-muted); border-bottom: 1px solid var(--border-light); padding-bottom: 8px; text-transform: uppercase; margin-top: 0; }
         .form-group { margin-bottom: 15px; } label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; color: #34495e;}
-        input[type="text"], input[type="number"], input[type="date"], input[type="month"], input[type="password"], select { width: 100%; height: 50px; padding: 10px 12px; border: 1px solid var(--border-input); border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #fdfdfd; color: var(--text-main); -webkit-appearance: none; transition: border-color 0.2s; }
-        input:focus, select:focus { border-color: #3498db; outline: none; background-color: #fff; box-shadow: 0 0 0 3px rgba(52,152,219,0.2);}
+        input[type="text"], input[type="number"], input[type="date"], input[type="month"], select { width: 100%; height: 50px; padding: 10px 12px; border: 1px solid var(--border-input); border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #fdfdfd; transition: border-color 0.2s; }
+        input:focus, select:focus { border-color: var(--primary); outline: none; background-color: #fff; box-shadow: 0 0 0 3px rgba(0,0,0,0.05);}
         .row { display: flex; gap: 12px; } .row .form-group { flex: 1; }
-        .tariff-toggle { display: flex; gap: 10px; margin-bottom: 20px; } .tariff-toggle label { flex: 1; background: #f1f2f6; padding: 14px 5px; text-align: center; border-radius: 8px; border: 1px solid #dcdde1; font-size: 14px; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: 0.2s; } .tariff-toggle input[type="radio"] { display: none; } .tariff-toggle label:has(input[type="radio"]:checked) { background: var(--warning); border-color: var(--warning-dark); color: white; box-shadow: 0 2px 5px rgba(243,156,18,0.3);}
-        button { height: 54px; background-color: var(--primary); color: #fff; border: none; font-size: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.1s, background-color 0.2s;} button:active { background-color: var(--primary-dark); transform: translateY(2px); box-shadow: 0 2px 3px rgba(0,0,0,0.1);} button:disabled { background-color: #95a5a6; cursor: not-allowed; box-shadow: none; transform: none;}
-        .btn-green { background-color: var(--success); height: 50px;} .btn-green:active { background-color: var(--success-dark); } .btn-yellow { background-color: var(--warning); color: #fff;} .btn-yellow:active { background-color: var(--warning-dark); } .btn-cancel { background-color: #95a5a6; height: 50px;}
-        .data-table, .archive-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; } .data-table th, .data-table td, .archive-table th, .archive-table td { border: 1px solid var(--border-light); padding: 12px 8px; text-align: left; vertical-align: top;} .data-table th, .archive-table th { background-color: #f8f9fa; color: var(--text-muted); }
+        button { height: 50px; background-color: var(--primary); color: #fff; border: none; font-size: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; transition: 0.2s;} button:active { transform: translateY(2px); } button:disabled { background-color: #95a5a6; cursor: not-allowed;}
+        .btn-green { background-color: var(--success); } .btn-cancel { background-color: #95a5a6;}
+        .type-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        .type-selector button { flex: 1; border: 2px solid transparent; background: #ecf0f1; color: #7f8c8d; height: 55px; font-size: 16px; }
+        .type-selector button.sel-tok.active { background: #e67e22; color: #fff; box-shadow: 0 4px 10px rgba(230,126,34,0.3); }
+        .type-selector button.sel-voda.active { background: #2980b9; color: #fff; box-shadow: 0 4px 10px rgba(41,128,185,0.3); }
+        .tariff-toggle { display: flex; gap: 10px; margin-bottom: 20px; } .tariff-toggle label { flex: 1; background: #f1f2f6; padding: 14px 5px; text-align: center; border-radius: 8px; border: 1px solid #dcdde1; font-size: 14px; font-weight: bold; color: var(--text-muted); cursor: pointer; } .tariff-toggle input[type="radio"] { display: none; } .tariff-toggle label:has(input[type="radio"]:checked) { background: var(--primary); border-color: var(--primary-dark); color: white;}
+        
+        .table-wrapper { max-height: 30vh; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 8px; margin-top: 15px; background-color: #fff; }
+        .table-wrapper-large { max-height: 50vh; }
+        .data-table, .archive-table { width: 100%; border-collapse: collapse; margin-top: 0; font-size: 13px; } 
+        .data-table th, .data-table td, .archive-table th, .archive-table td { border-bottom: 1px solid var(--border-light); padding: 12px 8px; text-align: left; vertical-align: middle;} 
+        .data-table th, .archive-table th { background-color: #f8f9fa; color: var(--text-muted); position: sticky; top: 0; z-index: 10; box-shadow: inset 0 -2px 0 var(--border-light); }
+
         .action-btn { font-weight: bold; font-size: 18px; padding: 5px; cursor: pointer; display: inline-block; margin: 0 5px;} .action-edit { color: var(--primary); } .action-delete { color: var(--danger); }
-        .archive-pending { background-color: var(--archive-pending); border-left: 4px solid var(--archive-pending-border) !important; } .archive-invoiced { background-color: var(--archive-invoiced); border-left: 4px solid var(--archive-invoiced-border) !important; }
         .info-box { background-color: #e8f8f5; border-left: 4px solid #1abc9c; padding: 12px; font-size: 13px; margin-bottom: 15px; color: #16a085; line-height: 1.4; border-radius: 4px;} .error-msg { background-color: #fce4e4; border-left: 4px solid var(--danger); padding: 12px; font-size: 13px; margin-bottom: 15px; color: var(--danger-dark); display: none; font-weight: bold; border-radius: 4px;}
         .preview-doc { background: #fff; padding: 25px 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.08); font-size: 12px; line-height: 1.5; color: #000; } .letterhead { border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; text-align: right; } .lh-details { font-size: 10px; color: #555; } .lh-details strong { font-size: 14px; color: #000;}
-        .prot-header { text-align: center; margin-bottom: 20px; } .prot-header h1 { font-size: 16px; margin: 0; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;}
+        .prot-header { text-align: center; margin-bottom: 20px; } .prot-header h1 { font-size: 16px; margin: 0; font-weight: bold; text-transform: uppercase;}
         table.prot-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 11px;} table.prot-table th, table.prot-table td { border: 1px solid #000; padding: 8px 6px; text-align: left; } table.prot-table th { background-color: #f0f0f0; text-align: center; font-weight: bold;} .text-center { text-align: center; } .text-right { text-align: right; } .highlight { font-weight: bold; }
         .signatures { display: flex; justify-content: flex-end; margin-top: 40px; page-break-inside: avoid;} .signature-box { width: 50%; text-align: center; } .signature-box p { margin-bottom: 5px; font-weight: bold; font-size: 13px; text-align: left;} .signature-line { border-top: 1px solid #000; width: 100%; display: inline-block; margin-top: 40px;}
-        .read-block { padding: 8px 10px; margin-bottom: 10px; border-radius: 4px; } .read-real { border-left: 4px solid #bdc3c7; background: #f8f9fa; color: #555;} .read-interp { border-left: 4px solid var(--warning); background: #fffbf2; color: #000;} .methodology-box { font-size: 11px; background: #f9f9f9; border-left: 3px solid var(--primary); padding: 8px 10px; margin-bottom: 15px; color: #333; }
+        .read-block { padding: 8px 10px; margin-bottom: 10px; border-radius: 4px; } .read-real { border-left: 4px solid #7f8c8d; background: #f4f6f7; color: #333;} .read-interp { border-left: 4px solid var(--primary); background: #fffbf2; color: #000;} .methodology-box { font-size: 11px; background: #f9f9f9; border-left: 3px solid var(--primary); padding: 8px 10px; margin-bottom: 15px; color: #333; }
         
-        #objectEditor, #issuerEditor { display: none; background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #dcdde1; margin-bottom: 15px;}
-        #archiveEditor { display: none; background: #fffbf2; padding: 15px; border-radius: 8px; border: 2px solid #f39c12; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(243,156,18,0.2); transition: 0.3s;}
-        #quickInvoiceEntry { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); margin-bottom: 15px; display: none; }
-        
-        .step-summary { background: #e8f8f5; border: 1px solid #1abc9c; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;} .step-summary-text { font-size: 13px; color: #2c3e50;}
-        
-        /* НОВ КОМПАКТЕН CSS ЗА ПЕЧАТ НА 1 СТРАНИЦА */
+        #objectEditor, #companyEditor, #issuerEditor, #archiveEditor { display: none; background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #dcdde1; margin-bottom: 15px;}
+        .badge { display: inline-block; padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; margin-bottom: 4px;} .badge-tok { background: #e67e22; } .badge-voda { background: #2980b9; }
+
+        .hint-container { display: none; font-size: 11px; color: var(--primary); margin-bottom: 4px; font-weight: bold; }
+        .hint-btn { cursor: pointer; text-decoration: underline; color: var(--primary); margin-left: 5px; }
+
         @media print { 
-            @page { size: A4; margin: 10mm 12mm 10mm 12mm; } 
+            @page { size: A4; margin: 10mm 12mm; } 
             body { background: none; font-size: 11px !important; } 
             .tabs, .system-topbar, #section-bneb, #section-wizard, #section-objects, #section-archive, .print-btn-group, .error-msg, #quickInvoiceEntry { display: none !important; } 
             #section-preview { display: block !important; padding: 0 !important; margin: 0 !important;} 
             .preview-doc { box-shadow: none !important; padding: 0 !important; margin: 0 !important; font-size: 11px !important; page-break-inside: avoid; } 
-            table.prot-table { font-size: 11px !important; margin: 8px 0 !important; } 
-            table.prot-table th, table.prot-table td { padding: 4px 5px !important; } 
+            table.prot-table { font-size: 11px !important; margin: 8px 0 !important; } table.prot-table th, table.prot-table td { padding: 4px 5px !important; } 
             table.prot-table th { background-color: #e0e0e0 !important; -webkit-print-color-adjust: exact; }
             .letterhead { border-bottom: 2px solid #000 !important; margin-bottom: 10px !important; padding-bottom: 5px !important; } 
-            .prot-header { margin-bottom: 10px !important; } 
-            .prot-header h1 { font-size: 14px !important; }
+            .prot-header { margin-bottom: 10px !important; } .prot-header h1 { font-size: 14px !important; }
             .methodology-box { margin-bottom: 8px !important; padding: 5px 8px !important; font-size: 9px !important; } 
             .read-block { margin-bottom: 5px !important; padding: 4px 8px !important; } 
             .signatures { margin-top: 15px !important; page-break-inside: avoid;} 
+            .table-wrapper { max-height: none !important; overflow: visible !important; border: none !important; }
+            .data-table th, .archive-table th { position: static !important; box-shadow: none !important; border-bottom: 1px solid #000 !important;}
         }
     </style>
 </head>
 <body>
 
+    <div id="authOverlay">
+        <div class="auth-box">
+            <h2>Вход в системата</h2>
+            <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 20px;">Моля, въведете вашата парола за достъп</p>
+            <input type="password" id="authInput" placeholder="Парола...">
+            <button onclick="attemptLogin()">ВХОД ➔</button>
+            <div id="authError" style="color: var(--danger); font-size: 12px; margin-top: 10px; font-weight: bold; display: none;"></div>
+        </div>
+    </div>
+
     <div id="loaderOverlay">
         <div class="spinner"></div>
-        <div id="loaderText">Синхронизация с облака...</div>
+        <div id="loaderText">Обработка...</div>
     </div>
 
     <div class="system-topbar">
-        <div id="userInfo">👤 Оторизация...</div>
-        <div id="clockInfo">⌚ Зареждане...</div>
+        <div>👤 Режим: Редакция | <strong id="topbarUser"></strong> <button class="btn-logout" onclick="logout()">Изход</button></div>
+        <div><button class="btn-refresh" onclick="silentRefresh()" title="Опресни данните">🔄</button> <span id="clockInfo" style="margin-left: 10px;"></span></div>
     </div>
 
     <nav class="tabs">
@@ -87,637 +110,782 @@
 <main class="container">
     
     <section id="section-bneb" class="tab-content">
-        <div class="card card-price">
-            <h3>Въвеждане на цени БНЕБ</h3>
-            <div class="info-box">Всички суми са в ЕВРО (€). Данните се записват защитено в базата данни.</div>
-            <div class="row">
-                <div class="form-group"><label>Месец</label><select id="dbMonth"><option value="01">Януари</option><option value="02">Февруари</option><option value="03">Март</option><option value="04">Април</option><option value="05">Май</option><option value="06">Юни</option><option value="07">Юли</option><option value="08">Август</option><option value="09">Септември</option><option value="10">Октомври</option><option value="11">Ноември</option><option value="12">Декември</option></select></div>
-                <div class="form-group"><label>Година</label><select id="dbYear"><option value="2025" selected>2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option></select></div>
+        <div class="row">
+            <div class="card" style="flex:1; border-color: #e67e22;">
+                <h3>⚡ ЦЕНИ ТОК (БНЕБ)</h3>
+                <div class="info-box" style="border-color:#e67e22; color:#d35400; background:#fdf3e8;">Въведете средна цена за Мегаватчас (€).</div>
+                <div class="row">
+                    <div class="form-group"><select id="dbMonthT"><option value="01">Януари</option><option value="02">Февруари</option><option value="03">Март</option><option value="04">Април</option><option value="05">Май</option><option value="06">Юни</option><option value="07">Юли</option><option value="08">Август</option><option value="09">Септември</option><option value="10">Октомври</option><option value="11">Ноември</option><option value="12">Декември</option></select></div>
+                    <div class="form-group"><select id="dbYearT"><option value="2025">2025</option><option value="2026" selected>2026</option></select></div>
+                </div>
+                <div class="form-group"><input type="number" step="0.01" id="dbPriceT" placeholder="Напр. 89.50"></div>
+                <button type="button" class="btn-green" onclick="addPrice('tok')">+ ЗАПИШИ ТОК</button>
             </div>
-            <div class="form-group"><label>Цена за MWh (€)</label><input type="number" step="0.01" id="dbPrice" placeholder="Напр. 89.50"></div>
-            <button type="button" id="btnSavePrice" class="btn-green" onclick="addPrice()">+ ЗАПИШИ ЦЕНА</button>
-            <table class="data-table" style="margin-top:20px; text-align:center;">
-                <thead><tr><th>Период</th><th>Цена (€)</th><th></th></tr></thead>
-                <tbody id="priceTableBody"></tbody>
-            </table>
+            <div class="card" style="flex:1; border-color: #2980b9;">
+                <h3>💧 ЦЕНИ ВОДА</h3>
+                <div class="info-box" style="border-color:#2980b9; color:#2980b9; background:#ebf5fb;">Въведете официална цена за Кубик (€).</div>
+                <div class="row">
+                    <div class="form-group"><select id="dbMonthV"><option value="01">Януари</option><option value="02">Февруари</option><option value="03">Март</option><option value="04">Април</option><option value="05">Май</option><option value="06">Юни</option><option value="07">Юли</option><option value="08">Август</option><option value="09">Септември</option><option value="10">Октомври</option><option value="11">Ноември</option><option value="12">Декември</option></select></div>
+                    <div class="form-group"><select id="dbYearV"><option value="2025">2025</option><option value="2026" selected>2026</option></select></div>
+                </div>
+                <div class="form-group"><input type="number" step="0.001" id="dbPriceV" placeholder="Напр. 1.500"></div>
+                <button type="button" class="btn-green" onclick="addPrice('voda')">+ ЗАПИШИ ВОДА</button>
+            </div>
+        </div>
+        <div class="card">
+            <h3>Въведени Цени</h3>
+            <div class="table-wrapper">
+                <table class="data-table" style="text-align:center;">
+                    <thead><tr><th>Период</th><th>Цена Ток (MWh)</th><th>Цена Вода (m³)</th><th></th></tr></thead>
+                    <tbody id="priceTableBody"></tbody>
+                </table>
+            </div>
         </div>
     </section>
 
     <section id="section-wizard" class="tab-content active">
         <div id="wizard-step1">
-            <div class="card card-object">
-                <h3>📁 Стъпка 1: Обект и Реални Отчети</h3>
-                <div class="info-box">Изберете обект, въведете датите на физическото засичане и съответните показания на електромера.</div>
-                <div class="form-group"><label>Изберете Обект</label><select id="objectSelect" onchange="autoFillObjectData()" style="border-color: #8e44ad; border-width: 2px;"><option value="" disabled selected>-- Изчаква се зареждане --</option></select></div>
-                <div class="form-group" style="margin-top: 15px;"><label>Електромер към обекта</label><select id="meterSelect" disabled style="background-color: #ecf0f1; border-color: #bdc3c7; color:#333;"><option value="" disabled selected>-- Очаква избор на обект --</option></select></div>
-                <div class="row" style="background:#f9f9f9; padding:15px 10px 5px 10px; border-radius:8px; border:1px solid #eee; margin-top: 15px;">
-                    <div class="form-group"><label style="color:var(--primary);">Дата на Стар отчет:</label><input type="date" id="startDate" style="border-color:var(--primary);"></div>
-                    <div class="form-group"><label style="color:var(--primary);">Дата на Нов отчет:</label><input type="date" id="endDate" style="border-color:var(--primary);"></div>
+            <div class="card">
+                <h3>📁 Стъпка 1: Обект и Уред</h3>
+                <div class="form-group"><label>Изберете Обект</label><select id="objectSelect" onchange="checkObjectTypes()"><option value="" disabled selected>-- Зареждане --</option></select></div>
+                
+                <div id="typeSelectionBlock" style="display:none;">
+                    <label>Изберете тип отчет за този обект:</label>
+                    <div class="type-selector">
+                        <button type="button" id="btnTypeTok" class="sel-tok" onclick="setWorkingType('tok')">⚡ ТОК</button>
+                        <button type="button" id="btnTypeVoda" class="sel-voda" onclick="setWorkingType('voda')">💧 ВОДА</button>
+                    </div>
                 </div>
-                <div class="tariff-toggle" style="pointer-events: none; opacity: 0.8; margin-top: 15px;">
-                    <label><input type="radio" name="tariffType" id="tariffSingle" value="1" checked> <span>Една (Т)</span></label>
-                    <label><input type="radio" name="tariffType" id="tariffDual" value="2"> <span>Две (Т1, Т2)</span></label>
+
+                <div id="readsBlock" style="display: none;">
+                    <div class="form-group" style="margin-top: 15px;"><label>Избран уред (инфо)</label><input type="text" id="meterInfo" disabled style="background-color: #ecf0f1; border:none; font-weight:bold; color:var(--primary);"></div>
+                    
+                    <div class="row" style="background:#f9f9f9; padding:15px 10px 5px 10px; border-radius:8px; margin-top: 15px;">
+                        <div class="form-group"><label style="color:var(--primary);">Дата на предходна фактура (База):</label><input type="date" id="startDate"></div>
+                        <div class="form-group"><label style="color:var(--primary);">Дата на Ново засичане (Терен):</label><input type="date" id="endDate"></div>
+                    </div>
+                    
+                    <div class="info-box" style="margin-top: 10px;" id="autoFetchNotice">🤖 Базата се зарежда...</div>
+                    
+                    <div class="tariff-toggle" style="pointer-events: none; opacity: 0.8; margin-top: 15px;">
+                        <label><input type="radio" name="tariffType" id="tariffSingle" value="1" checked> <span id="lblSingle">Една</span></label>
+                        <label><input type="radio" name="tariffType" id="tariffDual" value="2"> <span id="lblDual">Две</span></label>
+                    </div>
+                    
+                    <div id="step1Error" class="error-msg" style="display:none;"></div>
+                    
+                    <div id="singleTariffDiv">
+                        <div class="row">
+                            <div class="form-group">
+                                <label>Предходно фактурирано показание (База)</label>
+                                <div id="hintOldT_container" class="hint-container">💡 Предложение: <span id="hintOldT_val"></span> <span class="hint-btn" onclick="document.getElementById('oldT').value = document.getElementById('hintOldT_val').innerText">[Въведи]</span></div>
+                                <input type="text" id="oldT" placeholder="0.000" oninput="formatNumber(this)">
+                            </div>
+                            <div class="form-group"><label style="color:var(--danger-dark);">Ново физическо засичане (Терен)</label><input type="text" id="newT" placeholder="0.000" oninput="formatNumber(this)"></div>
+                        </div>
+                    </div>
+                    <div id="dualTariffDiv" style="display: none;">
+                        <div class="row">
+                            <div class="form-group">
+                                <label id="lblOld1">База (Т1)</label>
+                                <div id="hintOldT1_container" class="hint-container">💡 Предложение: <span id="hintOldT1_val"></span> <span class="hint-btn" onclick="document.getElementById('oldT1').value = document.getElementById('hintOldT1_val').innerText">[Въведи]</span></div>
+                                <input type="text" id="oldT1" placeholder="0.000" oninput="formatNumber(this)">
+                            </div>
+                            <div class="form-group"><label id="lblNew1" style="color:var(--danger-dark);">Терен (Т1)</label><input type="text" id="newT1" placeholder="0.000" oninput="formatNumber(this)"></div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group">
+                                <label id="lblOld2">База (Т2)</label>
+                                <div id="hintOldT2_container" class="hint-container">💡 Предложение: <span id="hintOldT2_val"></span> <span class="hint-btn" onclick="document.getElementById('oldT2').value = document.getElementById('hintOldT2_val').innerText">[Въведи]</span></div>
+                                <input type="text" id="oldT2" placeholder="0.000" oninput="formatNumber(this)">
+                            </div>
+                            <div class="form-group"><label id="lblNew2" style="color:var(--danger-dark);">Терен (Т2)</label><input type="text" id="newT2" placeholder="0.000" oninput="formatNumber(this)"></div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="goToStep2()">ПРОДЪЛЖИ НАПРЕД ➔</button>
                 </div>
-                <div id="step1Error" class="error-msg" style="display:none;"></div>
-                <div id="singleTariffDiv">
-                    <div class="row"><div class="form-group"><label>Стар Отчет (Т)</label><input type="number" id="oldT" placeholder="0" pattern="\d*"></div><div class="form-group"><label>Нов Отчет (Т)</label><input type="number" id="newT" placeholder="0" pattern="\d*"></div></div>
-                </div>
-                <div id="dualTariffDiv" style="display: none;">
-                    <div class="row"><div class="form-group"><label>Стар (Т1 - Ден)</label><input type="number" id="oldT1" placeholder="0" pattern="\d*"></div><div class="form-group"><label>Нов (Т1 - Ден)</label><input type="number" id="newT1" placeholder="0" pattern="\d*"></div></div>
-                    <div class="row"><div class="form-group"><label>Стар (Т2 - Нощ)</label><input type="number" id="oldT2" placeholder="0" pattern="\d*"></div><div class="form-group"><label>Нов (Т2 - Нощ)</label><input type="number" id="newT2" placeholder="0" pattern="\d*"></div></div>
-                </div>
-                <div style="display:none;"><select id="provider"></select><input type="text" id="sourceObject"><input type="text" id="client"><input type="text" id="objectAddress"></div>
-                <button type="button" onclick="goToStep2()">ПРОДЪЛЖИ НАПРЕД ➔</button>
             </div>
         </div>
 
         <div id="wizard-step2" style="display: none;">
-            <div class="step-summary"><div class="step-summary-text" id="summaryText"></div><button type="button" class="btn-cancel" style="width: auto; height: 35px; padding: 0 15px; margin:0; font-size:12px;" onclick="goToStep1()">✎ Назад</button></div>
-            <div class="card card-price">
+            <div class="card">
                 <h3>📅 Стъпка 2: Месеци и Документ</h3>
-                <div class="info-box">Изберете периода за фактуриране. Системата автоматично ще изчисли разходите до края на посочения период.</div>
-                <div class="row"><div class="form-group"><label>Тип на документа</label><select id="documentType"><option value="protocol" selected>ПРОТОКОЛ</option><option value="notice">УВЕДОМЛЕНИЕ</option></select></div><div class="form-group"><label>Изготвил</label><select id="issuerSelect"><option value="" disabled selected>-- Зареждане --</option></select></div></div>
+                <div class="row"><div class="form-group"><label>Тип документ</label><select id="documentType"><option value="protocol" selected>ПРОТОКОЛ</option><option value="notice">УВЕДОМЛЕНИЕ</option></select></div><div class="form-group"><label>Изготвил</label><select id="issuerSelect"></select></div></div>
                 <div class="form-group"><label>Дата на издаване (Днес)</label><input type="date" id="protocolDate"></div>
-                <div class="row"><div class="form-group"><label style="color:var(--primary);">От Месец</label><input type="month" id="billingStartMonth" style="border-color: var(--primary); border-width: 2px;"></div><div class="form-group"><label style="color:var(--primary);">До Месец</label><input type="month" id="billingEndMonth" style="border-color: var(--primary); border-width: 2px;"></div></div>
-                <div class="form-group"><label>Надценка / Такси (€/kWh)</label><input type="number" step="0.001" id="marginPrice" value="0.076"></div>
+                <div class="row"><div class="form-group"><label>От Месец</label><input type="month" id="billingStartMonth"></div><div class="form-group"><label>До Месец</label><input type="month" id="billingEndMonth"></div></div>
+                <div class="form-group" id="markupDiv"><label>Надценка / Такси (€/kWh)</label><input type="number" step="0.001" id="marginPrice" value="0.076"></div>
                 <div id="step2Error" class="error-msg" style="display:none;"></div>
                 <button type="button" class="btn-green" onclick="generateDocument()">ГЕНЕРИРАЙ ДОКУМЕНТ ✓</button>
+                <button type="button" class="btn-cancel" onclick="goToStep1()" style="margin-top: 10px;">ОТКАЗ / НАЗАД</button>
             </div>
         </div>
     </section>
 
     <section id="section-objects" class="tab-content">
-        
-        <div class="card card-db">
+        <div class="card">
             <h3>Ревизия на обекти</h3>
-            <div class="info-box">Добавяйте или редактирате обекти и електромери тук.</div>
             <button type="button" class="btn-green" style="margin-bottom: 15px;" onclick="openObjectEditor('')">+ ДОБАВИ НОВ ОБЕКТ</button>
             <div id="objectEditor">
-                <h3 id="editorTitle">Редакция на обект</h3><input type="hidden" id="editOriginalName">
+                <h3 id="editorTitle">Обект</h3><input type="hidden" id="editOriginalName">
                 <div class="form-group"><label>Име на Обекта (Кратко)</label><input type="text" id="editName" placeholder="Напр. Офис 1"></div>
-                <div class="form-group"><label>Наемодател (Титуляр)</label><select id="editProvider"></select></div>
-                <div class="form-group"><label>Захранващ обект</label><input type="text" id="editSource" placeholder="Напр. РПЛ - ТП3"></div>
-                <div class="form-group"><label>Клиент / Ползвател</label><input type="text" id="editClient" placeholder="Име на фирма"></div>
-                <div class="form-group"><label>Електромер (Модел и №)</label><input type="text" id="editMeter" placeholder="Напр. EC30 №12345"></div>
-                <div class="form-group"><label>Адрес</label><input type="text" id="editAddress" placeholder="Пълен адрес"></div>
-                <div class="form-group"><label>Тарифи</label><select id="editTariffs"><option value="1">Една (Т)</option><option value="2">Две (Т1, Т2)</option></select></div>
+                <div class="row"><div class="form-group"><label>Наемодател</label><select id="editProvider"></select></div><div class="form-group"><label>Клиент / Ползвател</label><input type="text" id="editClient"></div></div>
+                <div class="form-group"><label>Адрес (Обект)</label><input type="text" id="editAddress"></div>
+                
+                <div style="background: rgba(230,126,34,0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #e67e22;">
+                    <strong>⚡ Електромер:</strong>
+                    <div class="row" style="margin-top:10px;"><div class="form-group"><label>Захранващ обект (Ток)</label><input type="text" id="editSourceTok" placeholder="Напр. ТП3"></div></div>
+                    <div class="row"><div class="form-group"><label>Тарифи</label><select id="editTariffsTok" onchange="toggleMeterFields('Tok')"><option value="1">Една (Т)</option><option value="2">Две (Т1, Т2)</option><option value="Няма наличен">Няма наличен</option></select></div><div class="form-group"><label>Модел и №</label><input type="text" id="editMeterTok"></div></div>
+                </div>
+                <div style="background: rgba(41,128,185,0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2980b9;">
+                    <strong>💧 Водомер:</strong>
+                    <div class="row" style="margin-top:10px;"><div class="form-group"><label>Захранващ обект (Вода)</label><input type="text" id="editSourceVoda" placeholder="Напр. Водомерен възел 1"></div></div>
+                    <div class="row"><div class="form-group"><label>Тарифи</label><select id="editTariffsVoda" onchange="toggleMeterFields('Voda')"><option value="1">Една (Само Доставка)</option><option value="2">Две (Доставка + Отвеждане)</option><option value="Няма наличен">Няма наличен</option></select></div><div class="form-group"><label>Модел и №</label><input type="text" id="editMeterVoda"></div></div>
+                </div>
                 <div class="row"><button type="button" id="btnSaveObj" class="btn-green" onclick="saveObject()">ЗАПАЗИ ОБЕКТ</button><button type="button" class="btn-cancel" onclick="closeObjectEditor()">ОТКАЗ</button></div>
             </div>
-            <table class="data-table"><thead><tr><th>Обект / Клиент</th><th>Електромер</th><th>Действие</th></tr></thead><tbody id="objectsTableBody"></tbody></table>
+            <div class="table-wrapper">
+                <table class="data-table"><thead><tr><th>Обект / Клиент</th><th>Уреди</th><th>Действие</th></tr></thead><tbody id="objectsTableBody"></tbody></table>
+            </div>
         </div>
 
-        <div class="card card-db" style="margin-top: 20px;">
-            <h3>🏢 Ревизия на Фирми Наемодатели</h3>
-            <div class="info-box">Добавяйте или редактирате фирмите наемодатели, техните ЕИК, ДДС номера и официални адреси. Данните се записват в таб "Companies".</div>
+        <div class="card">
+            <h3>🏢 Фирми Наемодатели</h3>
             <button type="button" class="btn-green" style="margin-bottom: 15px;" onclick="openCompanyEditor('')">+ ДОБАВИ НОВА ФИРМА</button>
-            
-            <div id="companyEditor" style="display: none; background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #dcdde1; margin-bottom: 15px;">
+            <div id="companyEditor">
                 <h3 id="compEditorTitle">Добавяне на фирма</h3>
-                <div class="form-group"><label>Име на Фирмата (точно както е по договор)</label><input type="text" id="compName" placeholder="Напр. „Резиденшъл Парк Лозен“ ЕООД"></div>
-                <div class="form-group"><label>ЕИК / Булстат</label><input type="text" id="compEik" placeholder="Напр. 175145573"></div>
-                <div class="form-group"><label>ДДС Номер</label><input type="text" id="compVat" placeholder="Напр. BG175145573"></div>
-                <div class="form-group"><label>Официален Адрес</label><input type="text" id="compAddress" placeholder="Пълен адрес на управление"></div>
-                <div class="row"><button type="button" id="btnSaveComp" class="btn-green" onclick="saveCompany()">ЗАПАЗИ ФИРМА</button><button type="button" class="btn-cancel" onclick="closeCompanyEditor()">ОТКАЗ</button></div>
+                <div class="form-group"><label>Име на Фирмата</label><input type="text" id="compName"></div>
+                <div class="row"><div class="form-group"><label>ЕИК</label><input type="text" id="compEik"></div><div class="form-group"><label>ДДС Номер</label><input type="text" id="compVat"></div></div>
+                <div class="form-group"><label>Официален Адрес</label><input type="text" id="compAddress"></div>
+                <div class="row"><button type="button" id="btnSaveComp" class="btn-green" onclick="saveCompany()">ЗАПАЗИ</button><button type="button" class="btn-cancel" onclick="closeCompanyEditor()">ОТКАЗ</button></div>
             </div>
-            
-            <table class="data-table">
-                <thead><tr><th>Фирма Наемодател</th><th>ЕИК / ДДС / Адрес</th><th style="text-align:center; width:80px;">Действие</th></tr></thead>
-                <tbody id="companiesTableBody"></tbody>
-            </table>
+            <div class="table-wrapper">
+                <table class="data-table"><thead><tr><th>Фирма Наемодател</th><th>ЕИК / ДДС / Адрес</th><th style="width:80px;"></th></tr></thead><tbody id="companiesTableBody"></tbody></table>
+            </div>
         </div>
-
-        <div class="card card-db" style="margin-top: 20px;">
-            <h3>Ревизия на Изготвили лица</h3>
-            <div class="info-box">Добавяйте или изтривайте имена на служители.</div>
-            <div id="issuerEditor" style="display:block; background:#f9fbfd; padding:15px; border-radius:8px; border:1px solid #dcdde1; margin-bottom:15px;">
-                <div class="form-group"><label>Ново име (Име и Фамилия)</label><input type="text" id="newIssuerName" placeholder="Напр. Иван Иванов"></div><button type="button" id="btnSaveIss" class="btn-green" onclick="addIssuer()">+ ДОБАВИ ИМЕ В МЕНЮТО</button>
+        
+        <div class="card">
+            <h3>Изготвили лица</h3>
+            <div class="row" style="margin-bottom: 15px;">
+                <div class="form-group" style="flex: 2; margin:0;"><input type="text" id="newIssuerName" placeholder="Име и Фамилия"></div>
+                <button type="button" id="btnSaveIss" class="btn-green" style="flex: 1; margin:0; height: 50px;" onclick="addIssuer()">+ ДОБАВИ</button>
             </div>
-            <table class="data-table"><thead><tr><th>Име на служител</th><th style="text-align:center; width:80px;">Изтрий</th></tr></thead><tbody id="issuersTableBody"></tbody></table>
+            <div class="table-wrapper">
+                <table class="data-table"><thead><tr><th>Име на служител</th><th style="width:80px;"></th></tr></thead><tbody id="issuersTableBody"></tbody></table>
+            </div>
         </div>
     </section>
 
     <section id="section-preview" class="tab-content">
-        <div id="validationErrorDoc" class="error-msg">⚠️ ЛИПСВАТ ДАННИ! Моля, върнете се в Таб "ДАННИ" и попълнете коректно всички стъпки.</div>
-        
-        <div id="quickInvoiceEntry">
-            <strong style="color: var(--primary-dark); font-size: 14px;">(Опция) Издавате ли фактура в момента?</strong>
-            <p style="font-size: 12px; margin: 5px 0 10px 0; color: #555;">Ако въведете данните сега, протоколът ще се запази директно като завършен (в зелено) в Архива.</p>
-            <div class="row">
-                <div class="form-group" style="margin-bottom:0;"><input type="text" id="quickInvNum" placeholder="Номер на фактура (Напр. 1000001234)"></div>
-                <div class="form-group" style="margin-bottom:0;"><input type="date" id="quickInvDate"></div>
+        <div id="validationErrorDoc" class="error-msg">⚠️ ЛИПСВАТ ДАННИ! Върнете се в Таб "ДАННИ".</div>
+        <div id="quickInvoiceEntry" style="display:none; background:#f8f9fa; padding:15px; border-radius:8px; border-left:4px solid var(--primary); margin-bottom:15px;">
+            <strong style="color: var(--primary-dark);">Въвеждане на фактура (Опция)</strong>
+            <div class="row" style="margin-top:10px;">
+                <div class="form-group" style="margin:0;"><input type="text" id="quickInvNum" placeholder="Номер фактура"></div>
+                <div class="form-group" style="margin:0;"><input type="date" id="quickInvDate"></div>
             </div>
         </div>
-
-        <div class="print-btn-group" id="actionButtons" style="display: none; gap: 10px; margin-bottom: 20px;"><button type="button" class="btn-green" onclick="window.print()" style="margin: 0; flex: 1;">🖨️ ПРИНТИРАЙ</button><button type="button" id="btnSaveArchiveTop" class="btn-yellow" onclick="saveToArchive()" style="margin: 0; flex: 1;">💾 ЗАПАЗИ В АРХИВ</button></div>
+        <div class="print-btn-group" id="actionButtons" style="display: none; gap: 10px; margin-bottom: 20px;"><button type="button" class="btn-green" onclick="window.print()" style="margin: 0; flex: 1;">🖨️ ПРИНТИРАЙ</button><button type="button" id="btnSaveArchiveTop" style="background:#34495e; color: #fff; margin: 0; flex: 1;" onclick="saveToArchive()">💾 ЗАПАЗИ В АРХИВ</button></div>
         
-        <div class="preview-doc">
-            <div class="letterhead" id="letterhead"><div class="lh-details"><strong id="lhName">Име на фирма</strong><br>ЕИК: <span id="lhEik">...</span> | ДДС №: <span id="lhVat">...</span><br>Адрес: <span id="lhAddress">...</span></div></div>
-            <div class="prot-header"><h1 id="outDocTitle">ПРОТОКОЛ</h1></div>
-            <div class="prot-content">
-                <div id="introText"></div>
-                <div class="methodology-box">
-                    <strong>Методика на изчисление:</strong> За осигуряване на точно съответствие с календарния период на фактуриране, крайното показание на електромера е пропорционално изчислено (интерполирано) спрямо реалните дати на физическото засичане. Началното показание е константа, прехвърлена от предходния период. Изчислението се базира на среднопретеглена цена на БНЕБ за включените месеци.
-                </div>
-                <div id="readsInfoBlock"></div>
-                <p>Стойността на дължимите разходи се формира от официалната средна цена за периода според БНЕБ и фиксирана надценка, както следва:</p>
-                <table class="prot-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 45%;">Наименование на разхода</th>
-                            <th style="width: 10%;">Мярка</th>
-                            <th style="width: 15%;">Количество</th>
-                            <th style="width: 15%;">Ед. цена (€)</th>
-                            <th style="width: 15%;">Стойност (€)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>1. Активна енергия (база средна цена БНЕБ)</td><td class="text-center">kWh</td><td class="text-center kwh-val">0</td><td class="text-right" id="outIbexPrice">0.0000</td><td class="text-right highlight" id="totalIbex">0.00</td></tr>
-                        <tr><td>2. Мрежови налози, балансиране и технологични разходи по вътрешна мрежа</td><td class="text-center">kWh</td><td class="text-center kwh-val">0</td><td class="text-right" id="outMarginPrice">0.0000</td><td class="text-right highlight" id="totalMargin">0.00</td></tr>
-                        <tr style="background-color: #f9f9f9; font-size: 12px;"><td colspan="4" class="text-right highlight">ОБЩА СУМА (без ДДС):</td><td class="text-right highlight" id="grandTotalNoVat">0.00 €</td></tr>
-                        <tr style="font-size: 12px;"><td colspan="4" class="text-right">Начислен ДДС (20%):</td><td class="text-right" id="vatAmount">0.00 €</td></tr>
-                        <tr style="background-color: #f2f2f2; font-size: 13px;"><td colspan="4" class="text-right highlight">ОБЩА СУМА ЗА ПЛАЩАНЕ (с ДДС):</td><td class="text-right highlight" id="grandTotalWithVat" style="color: #c0392b;">0.00 €</td></tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="signatures" id="signatureSection"><div class="signature-box"><p style="text-align: left;">Изготвил:<br><strong id="sigIssuerName" style="font-size: 13px; color: #000; display: block; margin-top: 5px;"></strong></p><span class="signature-line"></span><div style="font-size: 11px; color: #555; text-align: center;">(Подпис)</div></div></div>
-        </div>
+        <div class="preview-doc" id="previewContainer"></div>
     </section>
 
     <section id="section-archive" class="tab-content">
-        <div class="card card-archive">
+        <div class="card">
             <h3>Архив Протоколи и Фактури</h3>
-            <div class="info-box">Тук се пазят всички създадени протоколи. Натиснете оранжевия бутон "Въведи", за да добавите фактура към чакащ протокол.</div>
-            <div class="filter-box"><strong>Филтриране по период на създаване:</strong><div class="row" style="margin-top: 10px;"><div class="form-group"><label>От дата:</label><input type="date" id="filterStartDate" onchange="renderArchiveTable()"></div><div class="form-group"><label>До дата:</label><input type="date" id="filterEndDate" onchange="renderArchiveTable()"></div></div></div>
-            
+            <div class="type-selector" style="margin-bottom: 15px;">
+                <button type="button" id="btnFiltTok" class="sel-tok active" onclick="filterArchive('tok')">⚡ АРХИВ ТОК</button>
+                <button type="button" id="btnFiltVoda" class="sel-voda" onclick="filterArchive('voda')">💧 АРХИВ ВОДА</button>
+            </div>
             <div id="archiveEditor">
                 <h3 style="color: var(--warning-dark);">Въвеждане на фактура</h3><input type="hidden" id="archEditId">
-                <div class="form-group"><label>Номер на Фактура</label><input type="text" id="archEditInvNum" placeholder="Напр. 1000001234"></div><div class="form-group"><label>Дата на Фактура</label><input type="date" id="archEditInvDate"></div>
+                <div class="row"><div class="form-group"><label>Номер на Фактура</label><input type="text" id="archEditInvNum"></div><div class="form-group"><label>Дата на Фактура</label><input type="date" id="archEditInvDate"></div></div>
                 <div class="row"><button type="button" id="btnSaveArchEdit" class="btn-green" onclick="saveArchiveRecord()">ЗАПАЗИ</button><button type="button" class="btn-cancel" onclick="closeArchiveEditor()">ОТКАЗ</button></div>
             </div>
-            
-            <table class="archive-table"><thead><tr><th style="width: 20%;">Създаден</th><th style="width: 25%;">Клиент</th><th style="width: 20%;">Период / Отчет</th><th style="width: 15%;">Стойност</th><th style="width: 15%;">Фактура</th><th style="width: 5%;"></th></tr></thead><tbody id="archiveTableBody"></tbody></table>
+            <div class="table-wrapper table-wrapper-large">
+                <table class="archive-table"><thead><tr><th>Създаден / Тип</th><th>Клиент</th><th>Период / Отчет</th><th>Стойност</th><th>Фактура</th><th></th></tr></thead><tbody id="archiveTableBody"></tbody></table>
+            </div>
         </div>
     </section>
 </main>
 
 <script>
-    // ==========================================
-    // ВАЖНО: ТУК Е ВАШИЯТ НОВ WEB APP URL:
-    // ==========================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbzRF_XpxDSrtz_N6Ax3UxeWBYIEiEbuKtedLyPKyHZDMKO-3had_GfYKdYWnWivoTwJ/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbyFXlf0rkAv555IBthdfMAWX_oMbEPa8vNxgToyjdNa48FXzD96LeghI0nXUZ23JXB4Vw/exec"; 
 
-    let pricesDB = {}, objectsDB = {}, issuersDB = [], archiveDB = [], companiesDB = {}, currentUser = "";
-    let isReadOnly = true; 
-    let currentProtocolData = { date: "", client: "", totalNoVat: 0, period: "", lastRead: "", realReadDate: "", realReadValue: "" }, isWizardValid = false;
+    let pricesDB = {}, objectsDB = {}, issuersDB = [], archiveDB = [], companiesDB = {};
+    let currentUser = localStorage.getItem('rpl_user') || "";
+    let currentWorkingType = 'tok'; 
+    let currentProtocolData = {}; 
+    let isWizardValid = false;
+    let archiveFilter = 'tok';
 
-    // --- ФУНКЦИЯ ЗА КОМУНИКАЦИЯ С БЕКЕНДА (FETCH API) ---
+    window.onload = function() {
+        setInterval(() => { const now = new Date(); document.getElementById('clockInfo').innerHTML = `${now.toLocaleDateString('bg-BG')} ${now.toLocaleTimeString('bg-BG')} ч.`; }, 1000);
+        document.getElementById('protocolDate').value = new Date().toISOString().split('T')[0];
+        
+        if (currentUser) {
+            document.getElementById('authOverlay').style.display = 'none';
+            fetchDataSilently();
+        } else {
+            document.getElementById('authOverlay').style.display = 'flex';
+        }
+    };
+
+    function attemptLogin() {
+        const code = document.getElementById('authInput').value.trim();
+        if(!code) return;
+        showLoader("Проверка...");
+        callAPI('getInitialData', { author: code }).then(res => {
+            hideLoader();
+            if(res.status === 'error') {
+                document.getElementById('authError').innerText = res.message;
+                document.getElementById('authError').style.display = 'block';
+            } else {
+                currentUser = code;
+                localStorage.setItem('rpl_user', code);
+                document.getElementById('authOverlay').style.display = 'none';
+                processData(res);
+            }
+        }).catch(err => { hideLoader(); alert("Грешка при логин връзка: " + err.toString()); });
+    }
+
+    function logout() {
+        localStorage.removeItem('rpl_user');
+        location.reload();
+    }
+
+    function silentRefresh() {
+        if(!currentUser) return;
+        showLoader("Опресняване...");
+        fetchDataSilently();
+    }
+
+    function fetchDataSilently() {
+        callAPI('getInitialData', { author: currentUser }).then(res => {
+            hideLoader();
+            if(res.status === 'error') { logout(); } else { processData(res); }
+        }).catch(err => { hideLoader(); alert("Грешка при автоматично опресняване: " + err.toString()); });
+    }
+
+    function processData(res) {
+        pricesDB = res.prices; objectsDB = res.objects; issuersDB = res.issuers; archiveDB = res.archive; companiesDB = res.companies || {};
+        document.getElementById('topbarUser').innerText = currentUser;
+        initDropdowns(); renderPriceTable(); renderObjectsTable(); renderCompaniesTable(); renderIssuersTable(); renderArchiveTable();
+    }
+
     async function callAPI(action, params = {}) {
         params.action = action;
+        if(!params.author) params.author = currentUser;
         try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(params)
-            });
-            if (!response.ok) throw new Error("Грешка при връзка със сървъра.");
+            const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(params) });
             return await response.json();
         } catch (err) { throw err; }
     }
 
-    function showLoader(text = "Зареждане...") { document.getElementById('loaderText').innerText = text; document.getElementById('loaderOverlay').style.display = 'flex'; }
+    function showLoader(text="Зареждане...") { document.getElementById('loaderText').innerText = text; document.getElementById('loaderOverlay').style.display = 'flex'; }
     function hideLoader() { document.getElementById('loaderOverlay').style.display = 'none'; }
-    function showError(msg) { document.getElementById('loaderText').innerHTML = `<span style='color:red;'>${msg}</span>`; }
-    function disableBtn(btnId, loadingText = "Записва се...") { const btn = document.getElementById(btnId); if(btn) { btn.disabled = true; btn.dataset.origText = btn.innerText; btn.innerText = loadingText; } }
-    function enableBtn(btnId) { const btn = document.getElementById(btnId); if(btn) { btn.disabled = false; btn.innerText = btn.dataset.origText; } }
+    function formatNumber(el) { el.value = el.value.replace(/,/g, '.').replace(/[^0-9.]/g, ''); }
+    function formatDate(d) { if (isNaN(d)) return ""; return `${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}`; }
 
-    window.onload = function() {
-        if (!API_URL.includes("script.google.com")) {
-            showError("Моля, отворете кода и добавете валиден API_URL."); return;
-        }
-
-        showLoader("Синхронизация с базата данни...");
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('clockInfo').innerHTML = `⌚ ${now.toLocaleDateString('bg-BG')} <strong>${now.toLocaleTimeString('bg-BG')}</strong> ч.`;
-        }, 1000);
-        document.getElementById('protocolDate').value = new Date().toISOString().split('T')[0];
-        
-        callAPI('getInitialData')
-            .then(res => {
-                if (res.status === "error") throw new Error(res.message);
-                pricesDB = res.prices; objectsDB = res.objects; issuersDB = res.issuers; archiveDB = res.archive;
-                companiesDB = res.companies || {}; // Зареждаме фирмите от базата
-                
-                currentUser = "Гост"; isReadOnly = true;
-                document.getElementById('userInfo').innerHTML = `<div style="display:flex; align-items:center; gap:5px;">🔒 Данните са скрити. <input type="password" id="customEmailInput" placeholder="Въведете код..." style="height:25px; padding:2px 5px; font-size:12px; width:120px; border-radius:4px; border:none; color:black;"> <button type="button" onclick="unlockForm()" style="height:25px; background:var(--success); color:white; border:none; padding:0 8px; font-size:11px; border-radius:4px; cursor:pointer; width:auto; margin:0; font-weight:bold;">Отключи</button></div>`;
-                
-                renderPriceTable(); renderObjectsTable(); renderCompaniesTable(); renderIssuersTable(); initDropdowns(); renderArchiveTable();
-                hideLoader();
-            })
-            .catch(err => showError("Грешка в сървъра: " + err.message));
-    };
-
-    function unlockForm() {
-        const input = document.getElementById('customEmailInput');
-        const val = input ? input.value.trim() : "";
-        if (!val.toUpperCase().startsWith("ЛИМ")) { alert("⚠️ Грешен код! Името за достъп трябва задължително да започва с 'ЛИМ'"); return; }
-        
-        currentUser = val; isReadOnly = false;
-        document.getElementById('userInfo').innerHTML = `👤 🔓 Режим: Редакция | <strong>${currentUser}</strong>`;
-        
-        initDropdowns(); renderPriceTable(); renderObjectsTable(); renderCompaniesTable(); renderIssuersTable(); renderArchiveTable();
-        alert("Успешно отключване! Системата вече показва всички данни.");
-    }
-
-    function checkAccess() {
-        if (isReadOnly) { alert("🔒 Действието е блокирано! Системата е заключена. Въведете кода за достъп горе в лентата."); return false; }
-        return true;
-    }
-
-    function openTab(tabId, element) {
+    function openTab(tabId, el) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.getElementById(tabId).classList.add('active');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); element.classList.add('active');
-        if(tabId === 'section-preview' && !isWizardValid) { document.getElementById('actionButtons').style.display = 'none'; document.getElementById('quickInvoiceEntry').style.display = 'none'; document.getElementById('validationErrorDoc').style.display = 'block'; }
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); el.classList.add('active');
+        if(tabId === 'section-preview' && !isWizardValid) { document.getElementById('actionButtons').style.display = 'none'; document.getElementById('quickInvoiceEntry').style.display = 'none'; document.getElementById('validationErrorDoc').style.display = 'block'; document.getElementById('previewContainer').innerHTML=""; }
         window.scrollTo(0, 0);
     }
 
-    function initDropdowns() {
-        const os = document.getElementById('objectSelect'), ms = document.getElementById('meterSelect'), is = document.getElementById('issuerSelect'), ep = document.getElementById('editProvider');
-        if (isReadOnly) {
-            os.innerHTML = '<option value="" disabled selected>🔒 Отключете системата</option>';
-            ms.innerHTML = '<option value="" disabled selected>🔒 Отключете системата</option>';
-            is.innerHTML = '<option value="" disabled selected>🔒 Отключете системата</option>';
-            if(ep) ep.innerHTML = '<option value="" disabled selected>🔒 Заключено</option>';
-            return;
-        }
-        os.innerHTML = '<option value="" disabled selected>-- Изберете обект --</option>'; ms.innerHTML = '<option value="" disabled selected>-- Изчаква -</option>'; is.innerHTML = '<option value="" disabled selected>-- Изберете лице --</option>';
-        Object.keys(objectsDB).sort().forEach(n => os.appendChild(new Option(n, n)));
-        issuersDB.forEach(n => is.appendChild(new Option(n, n)));
+    function setWorkingType(type) {
+        currentWorkingType = type;
+        const clr = type === 'tok' ? '#e67e22' : '#2980b9';
+        const clrD = type === 'tok' ? '#d35400' : '#1f618d';
+        document.documentElement.style.setProperty('--primary', clr);
+        document.documentElement.style.setProperty('--primary-dark', clrD);
         
-        // Динамично пълнене на наемодателите
-        if(ep) {
-            ep.innerHTML = '<option value="" disabled selected>-- Изберете наемодател --</option>';
-            Object.keys(companiesDB).sort().forEach(c => ep.appendChild(new Option(c, c)));
+        document.getElementById('btnTypeTok').classList.toggle('active', type === 'tok');
+        document.getElementById('btnTypeVoda').classList.toggle('active', type === 'voda');
+        
+        const obj = objectsDB[document.getElementById('objectSelect').value];
+        if(!obj) return;
+
+        document.getElementById('readsBlock').style.display = 'block';
+        
+        let tType = type === 'tok' ? obj.tariffsTok : obj.tariffsVoda;
+        let mInfo = type === 'tok' ? obj.meterTok : obj.meterVoda;
+        document.getElementById('meterInfo').value = mInfo;
+        
+        document.getElementById('markupDiv').style.display = type === 'tok' ? 'block' : 'none';
+        
+        const isDual = tType == 2;
+        document.querySelector(`input[name="tariffType"][value="${isDual ? '2' : '1'}"]`).checked = true;
+        document.getElementById('singleTariffDiv').style.display = isDual ? 'none' : 'block'; 
+        document.getElementById('dualTariffDiv').style.display = isDual ? 'block' : 'none';
+        
+        if (type === 'tok') {
+            document.getElementById('lblSingle').innerText = "Една тарифа (Т)"; document.getElementById('lblDual').innerText = "Две тарифи (Т1, Т2)";
+            document.getElementById('lblOld1').innerText = "База (Т1)"; document.getElementById('lblNew1').innerText = "Терен (Т1)";
+            document.getElementById('lblOld2').innerText = "База (Т2)"; document.getElementById('lblNew2').innerText = "Терен (Т2)";
+        } else {
+            document.getElementById('lblSingle').innerText = "Само Доставка"; document.getElementById('lblDual').innerText = "Доставка + Отвеждане";
+            document.getElementById('lblOld1').innerText = "База (Доставка)"; document.getElementById('lblNew1').innerText = "Терен (Доставка)";
+            document.getElementById('lblOld2').innerText = "База (Отвеждане)"; document.getElementById('lblNew2').innerText = "Терен (Отвеждане)";
         }
 
+        autoFetchOldRead(obj.client, type, isDual);
+    }
+
+    function checkObjectTypes() {
+        const obj = objectsDB[document.getElementById('objectSelect').value];
+        if(!obj) return;
+        const hasTok = obj.tariffsTok && obj.tariffsTok !== "Няма наличен";
+        const hasVoda = obj.tariffsVoda && obj.tariffsVoda !== "Няма наличен";
+        document.getElementById('readsBlock').style.display = 'none';
+        
+        if (hasTok && hasVoda) {
+            document.getElementById('typeSelectionBlock').style.display = 'block';
+            setWorkingType('tok');
+        } else if (hasTok) {
+            document.getElementById('typeSelectionBlock').style.display = 'none';
+            setWorkingType('tok');
+        } else if (hasVoda) {
+            document.getElementById('typeSelectionBlock').style.display = 'none';
+            setWorkingType('voda');
+        } else {
+            document.getElementById('typeSelectionBlock').style.display = 'none';
+            alert("Този обект няма конфигурирани уреди!");
+        }
+    }
+
+    function autoFetchOldRead(clientName, docType, isDual) {
+        document.getElementById('oldT').value = ""; document.getElementById('oldT1').value = ""; document.getElementById('oldT2').value = "";
+        document.getElementById('startDate').value = "";
+        
+        document.getElementById('hintOldT_container').style.display = 'none';
+        document.getElementById('hintOldT1_container').style.display = 'none';
+        document.getElementById('hintOldT2_container').style.display = 'none';
+        
+        let fA = archiveDB.filter(r => r.client === clientName && r.docType === docType);
+        if(fA.length > 0) {
+            fA.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+            let lastR = fA[0];
+            
+            let v1 = (lastR.lastReadT1 && lastR.lastReadT1 !== "undefined") ? lastR.lastReadT1 : "";
+            let v2 = (lastR.lastReadT2 && lastR.lastReadT2 !== "undefined") ? lastR.lastReadT2 : "";
+            let rDate = (lastR.realReadDate && lastR.realReadDate !== "undefined") ? lastR.realReadDate : "";
+            
+            if (docType === 'tok') {
+                document.getElementById('autoFetchNotice').innerText = "💡 Старият отчет и дата за ТОК са извлечени и попълнени автоматично от Архива.";
+                if(isDual) {
+                    if(v1) { document.getElementById('hintOldT1_val').innerText = v1; document.getElementById('hintOldT1_container').style.display = 'block'; document.getElementById('oldT1').value = v1; }
+                    if(v2) { document.getElementById('hintOldT2_val').innerText = v2; document.getElementById('hintOldT2_container').style.display = 'block'; document.getElementById('oldT2').value = v2; }
+                } else {
+                    if(v1) { document.getElementById('hintOldT_val').innerText = v1; document.getElementById('hintOldT_container').style.display = 'block'; document.getElementById('oldT').value = v1; }
+                }
+                if(rDate) document.getElementById('startDate').value = rDate;
+            } else {
+                document.getElementById('autoFetchNotice').innerText = "🤖 Базата (Стар отчет и дата) е извлечена автоматично от Архива. Можете да я редактирате при нужда.";
+                if(isDual) {
+                    document.getElementById('oldT1').value = v1;
+                    document.getElementById('oldT2').value = v2;
+                } else {
+                    document.getElementById('oldT').value = v1;
+                }
+                if(rDate) document.getElementById('startDate').value = rDate;
+            }
+            
+            document.getElementById('autoFetchNotice').style.display = 'block';
+            return;
+        }
+        document.getElementById('autoFetchNotice').style.display = 'none';
+    }
+
+    function initDropdowns() {
+        const os = document.getElementById('objectSelect'), is = document.getElementById('issuerSelect'), ep = document.getElementById('editProvider');
+        os.innerHTML = '<option value="" disabled selected>-- Изберете обект --</option>'; is.innerHTML = '<option value="" disabled selected>-- Изберете лице --</option>'; ep.innerHTML = '<option value="" disabled selected>-- Изберете наемодател --</option>';
+        Object.keys(objectsDB).sort().forEach(n => os.appendChild(new Option(n, n)));
+        issuersDB.forEach(n => is.appendChild(new Option(n, n)));
+        Object.keys(companiesDB).sort().forEach(c => ep.appendChild(new Option(c, c)));
         const d = new Date(), cm = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2);
         document.getElementById('billingStartMonth').value = cm; document.getElementById('billingEndMonth').value = cm;
     }
 
-    function autoFillObjectData() {
-        const obj = objectsDB[document.getElementById('objectSelect').value];
-        if(obj) {
-            document.getElementById('client').value = obj.client; document.getElementById('sourceObject').value = obj.sourceObject; document.getElementById('objectAddress').value = obj.address;
-            const ps = document.getElementById('provider');
-            if (!Array.from(ps.options).some(o => o.value === obj.provider)) ps.appendChild(new Option(obj.provider, obj.provider));
-            ps.value = obj.provider;
-            document.getElementById('meterSelect').innerHTML = `<option value="${obj.meter}" selected>${obj.meter}</option>`;
-            const isDual = obj.tariffs == 2;
-            document.querySelector(`input[name="tariffType"][value="${isDual ? '2' : '1'}"]`).checked = true;
-            document.getElementById('singleTariffDiv').style.display = isDual ? 'none' : 'block'; document.getElementById('dualTariffDiv').style.display = isDual ? 'block' : 'none';
-        }
-    }
-
     function goToStep2() {
-        if (!checkAccess()) return;
-        const err = document.getElementById('step1Error'), obj = document.getElementById('objectSelect').value, sDt = document.getElementById('startDate').value, eDt = document.getElementById('endDate').value;
-        if(!obj) { err.innerText = "⚠️ Изберете Обект!"; err.style.display = 'block'; return; }
-        if(!sDt || !eDt || new Date(eDt) <= new Date(sDt)) { err.innerText = "⚠️ Проверете датите!"; err.style.display = 'block'; return; }
+        const err = document.getElementById('step1Error'), obj = document.getElementById('objectSelect').value;
+        const sDt = document.getElementById('startDate').value, eDt = document.getElementById('endDate').value;
+        
+        if(!obj || !sDt || !eDt) { err.innerText = "⚠️ Изберете Обект, База и Нов отчет (дати)!"; err.style.display = 'block'; return; }
+        if(new Date(eDt) <= new Date(sDt)) { err.innerText = "⚠️ Датата на новия отчет (Терен) трябва да е след Базата!"; err.style.display = 'block'; return; }
+        
         const isDual = document.querySelector('input[name="tariffType"]:checked').value === "2";
+        
+        let o1, n1, o2, n2, o0, n0;
         if(isDual) {
-            if(!document.getElementById('oldT1').value || !document.getElementById('newT1').value || !document.getElementById('oldT2').value || !document.getElementById('newT2').value) { err.innerText = "⚠️ Въведете всички показания!"; err.style.display = 'block'; return; }
+            o1=parseFloat(document.getElementById('oldT1').value); n1=parseFloat(document.getElementById('newT1').value); o2=parseFloat(document.getElementById('oldT2').value); n2=parseFloat(document.getElementById('newT2').value);
+            if(isNaN(o1)||isNaN(n1)||isNaN(o2)||isNaN(n2)) { err.innerText = "⚠️ Въведете всички показания!"; err.style.display = 'block'; return; }
+            if(n1<o1 || n2<o2) { err.innerText = "⚠️ Новият отчет не може да е по-малък от предходната база!"; err.style.display = 'block'; return; }
         } else {
-            if(!document.getElementById('oldT').value || !document.getElementById('newT').value) { err.innerText = "⚠️ Въведете показания!"; err.style.display = 'block'; return; }
+            o0=parseFloat(document.getElementById('oldT').value); n0=parseFloat(document.getElementById('newT').value);
+            if(isNaN(o0)||isNaN(n0)) { err.innerText = "⚠️ Въведете показания!"; err.style.display = 'block'; return; }
+            if(n0<o0) { err.innerText = "⚠️ Новият отчет не може да е по-малък от предходната база!"; err.style.display = 'block'; return; }
         }
-        err.style.display = 'none'; document.getElementById('wizard-step1').style.display = 'none'; document.getElementById('wizard-step2').style.display = 'block';
-        document.getElementById('summaryText').innerHTML = `<strong>Обект:</strong> <span style="color:var(--primary);">${obj}</span>`; window.scrollTo(0, 0);
+        
+        if(currentWorkingType === 'tok') {
+            if(isDual){ if(!Number.isInteger(o1)||!Number.isInteger(n1)||!Number.isInteger(o2)||!Number.isInteger(n2)) { err.innerText = "⚠️ При ТОК въвеждайте само цели числа!"; err.style.display = 'block'; return; } }
+            else { if(!Number.isInteger(o0)||!Number.isInteger(n0)) { err.innerText = "⚠️ При ТОК въвеждайте само цели числа!"; err.style.display = 'block'; return; } }
+        }
+
+        err.style.display = 'none'; document.getElementById('wizard-step1').style.display = 'none'; document.getElementById('wizard-step2').style.display = 'block'; window.scrollTo(0, 0);
     }
     function goToStep1() { document.getElementById('wizard-step2').style.display = 'none'; document.getElementById('wizard-step1').style.display = 'block'; isWizardValid = false; }
-    function formatDate(dateObj) { if (isNaN(dateObj)) return ""; return `${dateObj.getDate().toString().padStart(2, '0')}.${(dateObj.getMonth() + 1).toString().padStart(2, '0')}.${dateObj.getFullYear()}`; }
 
     function generateDocument() {
-        if (!checkAccess()) return;
-        const err = document.getElementById('step2Error'), p = document.getElementById('provider').value, o = document.getElementById('objectSelect').value, isN = document.getElementById('issuerSelect').value;
-        if(!isN || !document.getElementById('protocolDate').value || !document.getElementById('billingStartMonth').value || !document.getElementById('billingEndMonth').value) { err.innerText = "⚠️ Попълнете всички полета!"; err.style.display = 'block'; return; }
+        const err = document.getElementById('step2Error'), o = document.getElementById('objectSelect').value, obj = objectsDB[o], isN = document.getElementById('issuerSelect').value;
+        const bStart = document.getElementById('billingStartMonth').value, bEnd = document.getElementById('billingEndMonth').value;
+        const sDtVal = document.getElementById('startDate').value, eDtVal = document.getElementById('endDate').value;
         
-        let cMD = new Date(document.getElementById('billingStartMonth').value + "-01"), eMD = new Date(document.getElementById('billingEndMonth').value + "-01");
+        if(!isN || !bStart || !bEnd) { err.innerText = "⚠️ Попълнете всички полета!"; err.style.display = 'block'; return; }
+        
+        // ЗАЩИТА 1: Обърнати месеци в периода
+        if (bStart > bEnd) { 
+            err.innerText = "⚠️ Периодът е невалиден: 'От Месец' не може да бъде след 'До Месец'!"; 
+            err.style.display = 'block'; return; 
+        }
+
+        // ЗАЩИТА 2: Валидация на надценката за Ток
+        let checkMargin = parseFloat(document.getElementById('marginPrice').value);
+        if (currentWorkingType === 'tok' && (isNaN(checkMargin) || checkMargin < 0)) {
+            err.innerText = "⚠️ Надценката трябва да е валидно положително число или 0!";
+            err.style.display = 'block'; return;
+        }
+
+        let cMD = new Date(bStart + "-01"), eMD = new Date(bEnd + "-01");
         let sumP = 0, count = 0, mis = false;
         while(cMD <= eMD) {
             const k = cMD.getFullYear() + "-" + ("0" + (cMD.getMonth() + 1)).slice(-2);
-            if(pricesDB[k]) { sumP += parseFloat(pricesDB[k]); count++; } else { mis = true; break; }
+            if(pricesDB[k]) { 
+                let pr = currentWorkingType === 'tok' ? pricesDB[k].tok : pricesDB[k].voda;
+                if(pr !== undefined && pr !== "") { sumP += parseFloat(pr); count++; } else { mis = true; break; }
+            } else { mis = true; break; }
             cMD.setMonth(cMD.getMonth() + 1);
         }
-        if (mis || count === 0) { err.innerText = "⚠️ Липсва цена от БНЕБ за периода!"; err.style.display = 'block'; return; }
-        const avg = (sumP / count) / 1000;
+        if (mis || count === 0) { err.innerText = "⚠️ Липсва цена за избрания период!"; err.style.display = 'block'; return; }
+        const avg = currentWorkingType === 'tok' ? (sumP / count) / 1000 : (sumP / count); 
         
-        const sDt = new Date(document.getElementById('startDate').value), eDt = new Date(document.getElementById('endDate').value), [eY, eM] = document.getElementById('billingEndMonth').value.split('-'), tDt = new Date(eY, eM, 0);
-        if (tDt > eDt) { err.innerHTML = "⚠️ Целевият период е след датата на реалния отчет!"; err.style.display = 'block'; return; }
+        // Сигурно четене на датите в локално време срещу часови разминавания
+        const [sy, sm, sd] = sDtVal.split('-'); const sDt = new Date(sy, sm - 1, sd);
+        const [ey, em, ed] = eDtVal.split('-'); const eDt = new Date(ey, em - 1, ed);
+        const [bY, bM] = bEnd.split('-'); const tDt = new Date(bY, bM, 0); 
+        
+        // ЗАЩИТА 3: Краят на месеца е след теренния отчет
+        if (tDt > eDt) { 
+            err.innerText = "⚠️ Целевият период (края на месеца) е след датата на новия отчет (Терен)! Не може да се прогнозира напред."; 
+            err.style.display = 'block'; return; 
+        }
+
+        // ЗАЩИТА 5 (ПРЕМЕСТЕНА НАПРЕД): Проверка за дублиране (вече фактуриран период)
+        let targetMonths = [];
+        let tempMD = new Date(bStart + "-01");
+        let endMD2 = new Date(bEnd + "-01");
+        while(tempMD <= endMD2) {
+            targetMonths.push(tempMD.getFullYear() + "-" + ("0" + (tempMD.getMonth() + 1)).slice(-2));
+            tempMD.setMonth(tempMD.getMonth() + 1);
+        }
+        
+        let isAlreadyBilled = archiveDB.some(r => {
+            if (r.client === obj.client && r.docType === currentWorkingType) {
+                return targetMonths.some(m => (r.period || "").includes(m));
+            }
+            return false;
+        });
+
+        if (isAlreadyBilled) {
+            err.innerText = `⚠️ ГРЕШКА: Този период (или част от него) вече е фактуриран за този обект/клиент (${currentWorkingType === 'tok' ? '⚡ ТОК' : '💧 ВОДА'})! Проверете Архива.`; 
+            err.style.display = 'block'; return; 
+        }
+
+        // ЗАЩИТА 4 (ОЛЕКОТЕНА): Краят на фактурирания месец е преди датата на предходната База
+        if (tDt < sDt) {
+            err.innerText = "⚠️ Месецът за фактуриране не може да бъде преди датата на Базата (Предходния отчет)! Изберете съвместим период."; 
+            err.style.display = 'block'; return; 
+        }
         
         let tDays = Math.round((eDt - sDt) / 86400000); if (tDays <= 0) tDays = 1; 
-        let tarDays = Math.round((tDt - sDt) / 86400000), c = tarDays / tDays; if (c > 1) { c = 1; tarDays = tDays; }
+        let tarDays = Math.round((tDt - sDt) / 86400000);
+        let c = tarDays / tDays; 
+        if (c > 1) { c = 1; tarDays = tDays; }
+        if (c < 0) { c = 0; tarDays = 0; }
         
-        let cTot = 0, oTxt = "", nTxt = "", cnTxt = "";
-        if(document.querySelector('input[name="tariffType"]:checked').value === "2") {
-            let o1 = parseFloat(document.getElementById('oldT1').value)||0, n1 = parseFloat(document.getElementById('newT1').value)||0, o2 = parseFloat(document.getElementById('oldT2').value)||0, n2 = parseFloat(document.getElementById('newT2').value)||0;
-            let c1 = Math.round(Math.max(0, n1 - o1) * c), c2 = Math.round(Math.max(0, n2 - o2) * c); cTot = c1 + c2;
-            oTxt = `Т1: ${o1} / Т2: ${o2}`; nTxt = `Т1: ${n1} / Т2: ${n2}`; cnTxt = `Т1: ${o1 + c1} / Т2: ${o2 + c2}`;
+        let isDual = document.querySelector('input[name="tariffType"]:checked').value === "2";
+        let cTot1 = 0, cTot2 = 0, oTxt="", nTxt="", cnTxt="";
+        let dbCalc1 = "", dbCalc2 = "", dbReal1 = "", dbReal2 = "";
+        
+        if(isDual) {
+            let o1 = parseFloat(document.getElementById('oldT1').value), n1 = parseFloat(document.getElementById('newT1').value);
+            let o2 = parseFloat(document.getElementById('oldT2').value), n2 = parseFloat(document.getElementById('newT2').value);
+            
+            let interp1 = (n1 - o1) * c;
+            let interp2 = (n2 - o2) * c;
+
+            if(currentWorkingType === 'voda') { 
+                cTot1 = Number(interp1.toFixed(3)); 
+                cTot2 = Number(interp2.toFixed(3)); 
+                dbCalc1 = (o1 + cTot1).toFixed(3); dbCalc2 = (o2 + cTot2).toFixed(3);
+                cnTxt = `Т1: ${dbCalc1} / Т2: ${dbCalc2}`;
+            } else { 
+                cTot1 = Math.round(interp1); 
+                cTot2 = Math.round(interp2); 
+                dbCalc1 = Math.round(o1 + cTot1); dbCalc2 = Math.round(o2 + cTot2);
+                cnTxt = `Т1: ${dbCalc1} / Т2: ${dbCalc2}`;
+            }
+            
+            dbReal1 = n1; dbReal2 = n2;
+            oTxt = `Т1: ${o1} / Т2: ${o2}`; nTxt = `Т1: ${n1} / Т2: ${n2}`;
         } else {
-            let o0 = parseFloat(document.getElementById('oldT').value)||0, n0 = parseFloat(document.getElementById('newT').value)||0;
-            cTot = Math.round(Math.max(0, n0 - o0) * c); oTxt = `${o0}`; nTxt = `${n0}`; cnTxt = `${o0 + cTot}`;
+            let o0 = parseFloat(document.getElementById('oldT').value), n0 = parseFloat(document.getElementById('newT').value);
+            let interp0 = (n0 - o0) * c;
+
+            if(currentWorkingType === 'voda') { 
+                cTot1 = Number(interp0.toFixed(3)); 
+                dbCalc1 = (o0 + cTot1).toFixed(3);
+                cnTxt = `${dbCalc1}`;
+            } else { 
+                cTot1 = Math.round(interp0); 
+                dbCalc1 = Math.round(o0 + cTot1);
+                cnTxt = `${dbCalc1}`;
+            }
+            
+            dbReal1 = n0; dbReal2 = "";
+            oTxt = `${o0}`; nTxt = `${n0}`;
         }
+        let cTotAll = cTot1 + cTot2;
+
+        const p = obj.provider;
+        let lhName = p.toUpperCase(), lhEik = "Н/Д", lhVat = "Н/Д", lhAddr = "Н/Д";
+        if (companiesDB[p]) { lhName = p.replace(/„|“/g, '').toUpperCase(); lhEik = companiesDB[p].eik; lhVat = companiesDB[p].vat; lhAddr = companiesDB[p].address; }
         
-        document.querySelectorAll('.kwh-val').forEach(f => f.innerText = cTot);
+        let dType = document.getElementById('documentType').value, pDate = formatDate(new Date(document.getElementById('protocolDate').value)), bp = (bStart === bEnd) ? bStart : `${bStart} до ${bEnd}`;
+        let docTitle = dType === "protocol" ? (currentWorkingType === 'tok' ? "ПРОТОКОЛ ЗА ПРЕФАКТУРИРАНЕ НА ЕЛ. ЕНЕРГИЯ" : "ПРОТОКОЛ ЗА ПРЕФАКТУРИРАНЕ НА РАЗХОДИ ЗА ВОДА") : "УВЕДОМЛЕНИЕ ЗА РАЗПРЕДЕЛЕНИЕ НА РАЗХОДИ";
         
-        // Взимане на данни за фирмата от базата данни (cloud)
-        if (companiesDB[p]) { 
-            document.getElementById('lhName').innerText = p.replace(/„|“/g, '').toUpperCase(); 
-            document.getElementById('lhEik').innerText = companiesDB[p].eik; 
-            document.getElementById('lhVat').innerText = companiesDB[p].vat; 
-            document.getElementById('lhAddress').innerText = companiesDB[p].address; 
-        } else {
-            document.getElementById('lhName').innerText = p.toUpperCase(); 
-            document.getElementById('lhEik').innerText = "Н/Д"; 
-            document.getElementById('lhVat').innerText = "Н/Д"; 
-            document.getElementById('lhAddress').innerText = "Фирмата не е намерена в таб Companies";
-        }
+        let currentSource = currentWorkingType === 'tok' ? obj.sourceTok : obj.sourceVoda;
+
+        let introHTML = `<p>Днес, <span class="highlight">${pDate} г.</span>, се състави настоящият протокол относно:</p><p><strong>ТИТУЛЯР НА ПАРТИДА:</strong> <span class="highlight">${p}</span></p><p><strong>ПОЛЗВАТЕЛ:</strong> <span class="highlight">${obj.client}</span></p><p>Настоящият документ служи за установяване на дела от общите разходи за ${currentWorkingType==='tok'?'електрическа енергия':'вода'} за обект: <span class="highlight">${o}</span>, находящ се на адрес: <span class="highlight">${obj.address}</span>, захранван от: <span class="highlight">${currentSource}</span>, за отчетен период: <strong>${bp}</strong>.</p><p>Показанията са снети от контролен уред: <strong><span class="highlight">${document.getElementById('meterInfo').value}</span></strong>.</p>`;
         
-        let dType = document.getElementById('documentType').value, pDate = formatDate(new Date(document.getElementById('protocolDate').value)), mInfo = document.getElementById('meterSelect').options[0]?.text, bp = (document.getElementById('billingStartMonth').value === document.getElementById('billingEndMonth').value) ? document.getElementById('billingStartMonth').value : `${document.getElementById('billingStartMonth').value} до ${document.getElementById('billingEndMonth').value}`;
-        document.getElementById('outDocTitle').innerText = dType === "protocol" ? "ПРОТОКОЛ ЗА ПРЕФАКТУРИРАНЕ НА РАЗХОДИ" : "УВЕДОМЛЕНИЕ ЗА РАЗПРЕДЕЛЕНИЕ НА РАЗХОДИ";
-        
-        let introHTML = "";
-        if (dType === "protocol") {
-            introHTML = `<p>Днес, <span class="highlight">${pDate} г.</span>, се състави настоящият протокол относно:</p><p><strong>ТИТУЛЯР НА ПАРТИДА:</strong> <span class="highlight">${p}</span></p><p><strong>ПОЛЗВАТЕЛ:</strong> <span class="highlight">${document.getElementById('client').value}</span></p><p>Настоящият документ служи за установяване на дела от общите разходи за електрическа енергия за обект: <span class="highlight">${o}</span>, находящ се на адрес: <span class="highlight">${document.getElementById('objectAddress').value}</span>, захранван от: <span class="highlight">${document.getElementById('sourceObject').value}</span>, за отчетен период: <strong>${bp}</strong>.</p><p>Показанията са снети от контролен електромер: <strong><span class="highlight">${mInfo}</span></strong>.</p>`;
-        } else {
-            introHTML = `<p>До: <span class="highlight">${document.getElementById('client').value}</span> (Фактически ползвател)</p><p>От: <span class="highlight">${p}</span> (Титуляр на партида)</p><p>Дата на издаване: <span class="highlight">${pDate} г.</span></p><br><p>Уведомяваме Ви за извършено служебно засичане на контролен електромер <strong><span class="highlight">${mInfo}</span></strong>, измерващ консумацията на обект: <span class="highlight">${o}</span>, находящ се на адрес: <span class="highlight">${document.getElementById('objectAddress').value}</span>, захранван от: <span class="highlight">${document.getElementById('sourceObject').value}</span>, за отчетен период: <strong>${bp}</strong>.</p>`;
-        }
-        document.getElementById('introText').innerHTML = introHTML;
-        
-        document.getElementById('sigIssuerName').innerText = isN;
-        
-        // НОВ БЛОК ЗА РЕАЛНИ И ИЗЧИСЛЕНИ ОТЧЕТИ
         let sDtStr = formatDate(sDt);
         let eDtStr = formatDate(eDt);
         let tDtStr = formatDate(tDt);
 
         let readsHTML = `
+            <div class="read-block read-real" style="margin-bottom: 6px; border-left: 4px solid #7f8c8d; background: #f4f6f7; padding: 6px 10px;">
+                <strong>📖 Предходно фактурирано показание (База):</strong><br>
+                • Стар отчет (към дата <strong>${sDtStr} г.</strong>): <span class="highlight">${oTxt}</span>
+            </div>
             <div class="read-block read-real" style="margin-bottom: 6px; border-left: 4px solid #34495e; background: #f8f9fa; padding: 6px 10px;">
-                <strong>📋 Реални физически отчети (снети на терен):</strong><br>
-                • Стар физически отчет (на дата <strong>${sDtStr} г.</strong>): <span class="highlight">${oTxt}</span><br>
-                • Нов физически отчет (на дата <strong>${eDtStr} г.</strong>): <span class="highlight">${nTxt}</span>
+                <strong>📋 Данни от терен (Ново засичане):</strong><br>
+                • Нов отчет (на дата <strong>${eDtStr} г.</strong>): <span class="highlight">${nTxt}</span>
             </div>
         `;
 
         if (c < 1) {
             readsHTML += `
-                <div class="read-block read-interp" style="border-left: 4px solid var(--warning); background: #fffbf2; padding: 6px 10px;">
-                    <strong>🧮 Пропорционално изчислен отчет за фактуриране (до края на месеца - ${tDtStr} г.):</strong><br>
+                <div class="read-block read-interp" style="border-left: 4px solid var(--primary); background: #fffbf2; padding: 6px 10px; color: #000;">
+                    <strong>🧮 Изчислен отчет за фактуриране (до края на месеца - ${tDtStr} г.):</strong><br>
                     • Изчислено показание към края на периода: <span class="highlight">${cnTxt}</span><br>
-                    • База за префактуриране за периода (${tarDays} дни от общо ${tDays}): <strong>${cTot} kWh</strong>
+                    • База за префактуриране за периода (${tarDays} дни от общо ${tDays}): <strong>${cTotAll} ${currentWorkingType==='tok'?'kWh':'m³'}</strong>
                 </div>
             `;
         } else {
             readsHTML += `
-                <div class="read-block read-real" style="border-left: 4px solid var(--success); background: #e8f8f5; padding: 6px 10px;">
-                    • Общо консумация за фактуриране (${tDays} дни): <strong>${cTot} kWh</strong>
+                <div class="read-block read-real" style="border-left: 4px solid var(--success); background: #e8f8f5; padding: 6px 10px; color: #000;">
+                    • База за префактуриране за периода (${tDays} дни): <strong>${cTotAll} ${currentWorkingType==='tok'?'kWh':'m³'}</strong>
                 </div>
             `;
         }
 
-        document.getElementById('readsInfoBlock').innerHTML = readsHTML;
+        let tableRows = "", gN = 0, mP = 0;
+        if(currentWorkingType === 'tok') {
+            mP = parseFloat(document.getElementById('marginPrice').value) || 0;
+            let tI = cTotAll * avg, tM = cTotAll * mP; gN = tI + tM;
+            tableRows = `<tr><td>1. Активна енергия (база цена БНЕБ)</td><td class="text-center">kWh</td><td class="text-center">${cTotAll}</td><td class="text-right">${avg.toFixed(4)}</td><td class="text-right highlight">${tI.toFixed(2)}</td></tr>
+                         <tr><td>2. Мрежови налози и технологични разходи</td><td class="text-center">kWh</td><td class="text-center">${cTotAll}</td><td class="text-right">${mP.toFixed(4)}</td><td class="text-right highlight">${tM.toFixed(2)}</td></tr>`;
+        } else {
+            if(isDual) {
+                let t1 = cTot1 * avg, t2 = cTot2 * avg; gN = t1 + t2;
+                tableRows = `<tr><td>1. Доставена вода</td><td class="text-center">m³</td><td class="text-center">${cTot1}</td><td class="text-right">${avg.toFixed(3)}</td><td class="text-right highlight">${t1.toFixed(2)}</td></tr>
+                             <tr><td>2. Отведена и пречистена вода</td><td class="text-center">m³</td><td class="text-center">${cTot2}</td><td class="text-right">${avg.toFixed(3)}</td><td class="text-right highlight">${t2.toFixed(2)}</td></tr>`;
+            } else {
+                let t1 = cTot1 * avg; gN = t1;
+                tableRows = `<tr><td>1. Доставена вода</td><td class="text-center">m³</td><td class="text-center">${cTot1}</td><td class="text-right">${avg.toFixed(3)}</td><td class="text-right highlight">${t1.toFixed(2)}</td></tr>`;
+            }
+        }
+        let v = gN * 0.20, gW = gN + v;
+
+        let html = `
+            <div class="letterhead"><div class="lh-details"><strong>${lhName}</strong><br>ЕИК: ${lhEik} | ДДС №: ${lhVat}<br>Адрес: ${lhAddr}</div></div>
+            <div class="prot-header"><h1>${docTitle}</h1></div>
+            <div class="prot-content">
+                ${introHTML}
+                ${readsHTML}
+                <table class="prot-table">
+                    <thead><tr><th style="width:45%;">Наименование на разхода</th><th style="width:10%;">Мярка</th><th style="width:15%;">Количество</th><th style="width:15%;">Ед. цена (€)</th><th style="width:15%;">Стойност (€)</th></tr></thead>
+                    <tbody>
+                        ${tableRows}
+                        <tr style="background-color: #f9f9f9; font-size: 12px;"><td colspan="4" class="text-right highlight">ОБЩА СУМА (без ДДС):</td><td class="text-right highlight">${gN.toFixed(2)} €</td></tr>
+                        <tr style="font-size: 12px;"><td colspan="4" class="text-right">Начислен ДДС (20%):</td><td class="text-right">${v.toFixed(2)} €</td></tr>
+                        <tr style="background-color: #f2f2f2; font-size: 13px;"><td colspan="4" class="text-right highlight">ОБЩА СУМА ЗА ПЛАЩАНЕ (с ДДС):</td><td class="text-right highlight" style="color: #c0392b;">${gW.toFixed(2)} €</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="signatures"><div class="signature-box"><p style="text-align: left;">Изготвил:<br><strong style="font-size: 13px; color: #000; display: block; margin-top: 5px;">${isN}</strong></p><span class="signature-line"></span><div style="font-size: 11px; color: #555;">(Подпис)</div></div></div>
+        `;
+        document.getElementById('previewContainer').innerHTML = html;
         
-        const mP = parseFloat(document.getElementById('marginPrice').value) || 0, tI = cTot * avg, tM = cTot * mP, gN = tI + tM, v = gN * 0.20, gW = gN + v;
-        document.getElementById('outIbexPrice').innerText = avg.toFixed(4); document.getElementById('totalIbex').innerText = tI.toFixed(2);
-        document.getElementById('outMarginPrice').innerText = mP.toFixed(4); document.getElementById('totalMargin').innerText = tM.toFixed(2);
-        document.getElementById('grandTotalNoVat').innerText = gN.toFixed(2) + " €"; document.getElementById('vatAmount').innerText = v.toFixed(2) + " €"; document.getElementById('grandTotalWithVat').innerText = gW.toFixed(2) + " €";
-        
-        err.style.display = 'none'; 
-        document.getElementById('actionButtons').style.display = 'flex'; 
-        document.getElementById('quickInvoiceEntry').style.display = 'block'; 
-        document.getElementById('validationErrorDoc').style.display = 'none';
-        
+        err.style.display = 'none'; document.getElementById('actionButtons').style.display = 'flex'; document.getElementById('quickInvoiceEntry').style.display = 'block'; document.getElementById('validationErrorDoc').style.display = 'none';
         isWizardValid = true; 
         
-        // Добавено записване на реалния отчет за архива
         currentProtocolData = { 
-            date: pDate, 
-            client: document.getElementById('client').value, 
-            totalNoVat: gN, 
-            period: bp, 
-            lastRead: (c < 1) ? cnTxt : nTxt,
-            realReadDate: document.getElementById('endDate').value,
-            realReadValue: nTxt
+            date: pDate, client: obj.client, totalNoVat: gN, period: bp, docType: currentWorkingType,
+            lastReadT1: (c < 1) ? dbCalc1 : dbReal1,
+            lastReadT2: (c < 1) ? dbCalc2 : dbReal2,
+            realReadDate: eDtVal,
+            realReadT1: dbReal1,
+            realReadT2: dbReal2,
+            oldReadT1: isDual ? document.getElementById('oldT1').value : document.getElementById('oldT').value,
+            oldReadT2: isDual ? document.getElementById('oldT2').value : ""
         }; 
         openTab('section-preview', document.querySelectorAll('.tab-btn')[3]);
     }
 
-    // --- ФУНКЦИИ БНЕБ ---
-    function addPrice() {
-        if (!checkAccess()) return;
-        const k = `${document.getElementById('dbYear').value}-${document.getElementById('dbMonth').value}`, p = document.getElementById('dbPrice').value;
-        if(!p || p <= 0) return; 
-        disableBtn('btnSavePrice'); showLoader("Записване...");
-        callAPI('savePrice', { period: k, price: p, author: currentUser })
-            .then(r => { pricesDB = r; renderPriceTable(); document.getElementById('dbPrice').value = ''; hideLoader(); enableBtn('btnSavePrice'); })
-            .catch(e => { alert(e.message); hideLoader(); enableBtn('btnSavePrice'); });
+    function addPrice(type) {
+        let y = document.getElementById(type==='tok'?'dbYearT':'dbYearV').value, m = document.getElementById(type==='tok'?'dbMonthT':'dbMonthV').value;
+        let pr = document.getElementById(type==='tok'?'dbPriceT':'dbPriceV').value;
+        if(!pr) return;
+        showLoader("Запис...");
+        let payload = { period: `${y}-${m}` }; if(type==='tok') payload.priceTok = pr; else payload.priceVoda = pr;
+        callAPI('savePrice', payload).then(r=>{ pricesDB=r; renderPriceTable(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при запис на цена: " + e.toString()); });
     }
-    function removePrice(k) { 
-        if (!checkAccess()) return;
-        if(confirm("Изтриване?")) { 
-            showLoader("Изтриване..."); 
-            callAPI('deletePrice', { period: k, author: currentUser })
-                .then(r => { pricesDB = r; renderPriceTable(); hideLoader(); })
-                .catch(e => { alert(e.message); hideLoader(); });
-        } 
-    }
-    function renderPriceTable() { 
+    function removePrice(k) { if(confirm("Изтриване?")) { showLoader(); callAPI('deletePrice',{period:k}).then(r=>{ pricesDB=r; renderPriceTable(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при изтриване на цена: " + e.toString()); }); } }
+    function renderPriceTable() {
         const b = document.getElementById('priceTableBody'); b.innerHTML = ''; 
-        if (isReadOnly) { b.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 20px; color:#7f8c8d;">🔒 Данните са скрити. Моля, отключете системата.</td></tr>`; return; }
-        Object.keys(pricesDB).sort().reverse().forEach(k => { b.innerHTML += `<tr><td>${k}</td><td>${parseFloat(pricesDB[k]).toFixed(2)} €</td><td class="action-btn action-delete" onclick="removePrice('${k}')">✖</td></tr>`; }); 
+        Object.keys(pricesDB).sort().reverse().forEach(k => { b.innerHTML += `<tr><td>${k}</td><td>${pricesDB[k].tok?parseFloat(pricesDB[k].tok).toFixed(2)+' €':'-'}</td><td>${pricesDB[k].voda?parseFloat(pricesDB[k].voda).toFixed(3)+' €':'-'}</td><td class="action-btn action-delete" onclick="removePrice('${k}')">✖</td></tr>`; }); 
     }
 
-    // --- ФУНКЦИИ ОБЕКТИ ---
-    function saveObject() {
-        if (!checkAccess()) return;
-        const n = document.getElementById('editName').value.trim(); if(!n) return; 
-        disableBtn('btnSaveObj'); showLoader("Запазване...");
-        const p = document.getElementById('editProvider').value, s = document.getElementById('editSource').value, c = document.getElementById('editClient').value, m = document.getElementById('editMeter').value, a = document.getElementById('editAddress').value, t = document.getElementById('editTariffs').value, o = document.getElementById('editOriginalName').value;
-        callAPI('saveObject', { objName: n, provider: p, source: s, client: c, meter: m, address: a, tariffs: t, author: currentUser })
-            .then(r => { objectsDB = r; closeObjectEditor(); renderObjectsTable(); initDropdowns(); hideLoader(); enableBtn('btnSaveObj'); })
-            .catch(e => { alert(e.message); hideLoader(); enableBtn('btnSaveObj'); });
+    function toggleMeterFields(type) {
+        let val = document.getElementById('editTariffs' + type).value;
+        document.getElementById('editMeter' + type).disabled = (val === 'Няма наличен');
+        if(val === 'Няма наличен') document.getElementById('editMeter' + type).value = '';
     }
-    function deleteObject(k) { 
-        if (!checkAccess()) return;
-        if(confirm("Изтриване?")) { 
-            showLoader("Изтриване..."); 
-            callAPI('deleteObject', { objName: k, author: currentUser })
-                .then(r => { objectsDB = r; renderObjectsTable(); initDropdowns(); hideLoader(); })
-                .catch(e => { alert(e.message); hideLoader(); });
-        } 
-    }
-    function openObjectEditor(k) { 
-        if (!checkAccess()) return;
-        document.getElementById('objectEditor').style.display = 'block'; 
-        if(k && objectsDB[k]) { document.getElementById('editorTitle').innerText = "Редакция на обект"; document.getElementById('editOriginalName').value = k; document.getElementById('editName').value = k; document.getElementById('editProvider').value = objectsDB[k].provider; document.getElementById('editSource').value = objectsDB[k].sourceObject; document.getElementById('editClient').value = objectsDB[k].client; document.getElementById('editMeter').value = objectsDB[k].meter; document.getElementById('editAddress').value = objectsDB[k].address; document.getElementById('editTariffs').value = objectsDB[k].tariffs; } 
-        else { document.getElementById('editorTitle').innerText = "Добавяне на нов обект"; document.getElementById('editOriginalName').value = ""; document.getElementById('editName').value = ""; document.getElementById('editSource').value = ""; document.getElementById('editClient').value = ""; document.getElementById('editMeter').value = ""; document.getElementById('editAddress').value = ""; document.getElementById('editTariffs').value = "1"; } 
+    function openObjectEditor(k) {
+        document.getElementById('objectEditor').style.display = 'block';
+        if(k && objectsDB[k]) {
+            document.getElementById('editOriginalName').value = k; document.getElementById('editName').value = k;
+            document.getElementById('editProvider').value = objectsDB[k].provider; document.getElementById('editClient').value = objectsDB[k].client;
+            document.getElementById('editSourceTok').value = objectsDB[k].sourceTok || ""; document.getElementById('editAddress').value = objectsDB[k].address;
+            document.getElementById('editTariffsTok').value = objectsDB[k].tariffsTok || "1"; document.getElementById('editMeterTok').value = objectsDB[k].meterTok || "";
+            document.getElementById('editSourceVoda').value = objectsDB[k].sourceVoda || "";
+            document.getElementById('editTariffsVoda').value = objectsDB[k].tariffsVoda || "Няма наличен"; document.getElementById('editMeterVoda').value = objectsDB[k].meterVoda || "";
+        } else {
+            document.getElementById('editOriginalName').value = ""; document.getElementById('editName').value = ""; document.getElementById('editClient').value = ""; document.getElementById('editSourceTok').value = ""; document.getElementById('editAddress').value = "";
+            document.getElementById('editTariffsTok').value = "1"; document.getElementById('editMeterTok').value = ""; 
+            document.getElementById('editSourceVoda').value = ""; document.getElementById('editTariffsVoda').value = "Няма наличен"; document.getElementById('editMeterVoda').value = "";
+        }
+        toggleMeterFields('Tok'); toggleMeterFields('Voda');
     }
     function closeObjectEditor() { document.getElementById('objectEditor').style.display = 'none'; }
-    function renderObjectsTable() { 
-        const b = document.getElementById('objectsTableBody'); b.innerHTML = ''; 
-        if (isReadOnly) { b.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 20px; color:#7f8c8d;">🔒 Данните са скрити. Моля, отключете системата.</td></tr>`; return; }
-        Object.keys(objectsDB).sort().forEach(k => { b.innerHTML += `<tr><td><strong>${k}</strong><br><span style="font-size:11px;">${objectsDB[k].client}</span></td><td style="font-size:11px;">${objectsDB[k].meter}</td><td style="text-align:center;"><span class="action-btn action-edit" onclick="openObjectEditor('${k}')">✎</span> <span class="action-btn action-delete" onclick="deleteObject('${k}')">🗑</span></td></tr>`; }); 
+    function saveObject() {
+        const n = document.getElementById('editName').value.trim(); if(!n) return; showLoader();
+        callAPI('saveObject', { objName: n, provider: document.getElementById('editProvider').value, sourceTok: document.getElementById('editSourceTok').value, client: document.getElementById('editClient').value, meterTok: document.getElementById('editMeterTok').value, address: document.getElementById('editAddress').value, tariffsTok: document.getElementById('editTariffsTok').value, meterVoda: document.getElementById('editMeterVoda').value, tariffsVoda: document.getElementById('editTariffsVoda').value, sourceVoda: document.getElementById('editSourceVoda').value })
+            .then(r => { objectsDB=r; closeObjectEditor(); renderObjectsTable(); initDropdowns(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при запис на обект: " + e.toString()); });
     }
-
-    // --- ФУНКЦИИ ФИРМИ НАЕМОДАТЕЛИ ---
-    function renderCompaniesTable() {
-        const b = document.getElementById('companiesTableBody'); b.innerHTML = ''; 
-        if (isReadOnly) { b.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 20px; color:#7f8c8d;">🔒 Данните са скрити.</td></tr>`; return; }
-        Object.keys(companiesDB).sort().forEach(k => { 
-            b.innerHTML += `<tr><td><strong>${k}</strong></td><td style="font-size:11px; line-height:1.3;">ЕИК: ${companiesDB[k].eik}<br>ДДС: ${companiesDB[k].vat}<br>Адрес: ${companiesDB[k].address}</td><td style="text-align:center;"><span class="action-btn action-edit" onclick="openCompanyEditor('${k}')">✎</span> <span class="action-btn action-delete" onclick="deleteCompany('${k}')">🗑</span></td></tr>`; 
+    function deleteObject(k) { if(confirm("Изтриване?")) { showLoader(); callAPI('deleteObject',{objName:k}).then(r=>{ objectsDB=r; renderObjectsTable(); initDropdowns(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при изтриване на обект: " + e.toString()); }); } }
+    function renderObjectsTable() {
+        const b = document.getElementById('objectsTableBody'); b.innerHTML = ''; 
+        Object.keys(objectsDB).sort().forEach(k => { 
+            let o = objectsDB[k];
+            let tBadge = o.tariffsTok!=='Няма наличен' ? `<span class="badge badge-tok">⚡ ${o.meterTok}</span> ` : '';
+            let vBadge = o.tariffsVoda!=='Няма наличен' ? `<span class="badge badge-voda">💧 ${o.meterVoda}</span>` : '';
+            b.innerHTML += `<tr><td><strong>${k}</strong><br><span style="font-size:11px;">${o.client}</span></td><td>${tBadge}${vBadge}</td><td style="text-align:center;"><span class="action-btn action-edit" onclick="openObjectEditor('${k}')">✎</span> <span class="action-btn action-delete" onclick="deleteObject('${k}')">🗑</span></td></tr>`; 
         }); 
     }
+
     function openCompanyEditor(k) {
-        if (!checkAccess()) return;
         document.getElementById('companyEditor').style.display = 'block';
-        if (k && companiesDB[k]) {
-            document.getElementById('compEditorTitle').innerText = "Редакция на фирма";
-            document.getElementById('compName').value = k;
-            document.getElementById('compEik').value = companiesDB[k].eik;
-            document.getElementById('compVat').value = companiesDB[k].vat;
-            document.getElementById('compAddress').value = companiesDB[k].address;
-        } else {
-            document.getElementById('compEditorTitle').innerText = "Добавяне на нова фирма";
-            document.getElementById('compName').value = ""; document.getElementById('compEik').value = ""; document.getElementById('compVat').value = ""; document.getElementById('compAddress').value = "";
-        }
+        if(k && companiesDB[k]) { document.getElementById('compName').value = k; document.getElementById('compEik').value = companiesDB[k].eik; document.getElementById('compVat').value = companiesDB[k].vat; document.getElementById('compAddress').value = companiesDB[k].address; } 
+        else { document.getElementById('compName').value = ""; document.getElementById('compEik').value = ""; document.getElementById('compVat').value = ""; document.getElementById('compAddress').value = ""; }
     }
     function closeCompanyEditor() { document.getElementById('companyEditor').style.display = 'none'; }
     function saveCompany() {
-        if (!checkAccess()) return;
-        const name = document.getElementById('compName').value.trim();
-        const eik = document.getElementById('compEik').value.trim();
-        const vat = document.getElementById('compVat').value.trim();
-        const address = document.getElementById('compAddress').value.trim();
-        if(!name || !eik || !address) { alert("Моля попълнете име, ЕИК и адрес!"); return; }
-        
-        disableBtn('btnSaveComp'); showLoader("Запазване на фирма...");
-        callAPI('saveCompany', { name: name, eik: eik, vat: vat, address: address, author: currentUser })
-            .then(r => { companiesDB = r; closeCompanyEditor(); renderCompaniesTable(); initDropdowns(); hideLoader(); enableBtn('btnSaveComp'); })
-            .catch(e => { alert(e.message); hideLoader(); enableBtn('btnSaveComp'); });
+        const n = document.getElementById('compName').value.trim(); if(!n) return; showLoader();
+        callAPI('saveCompany', { name: n, eik: document.getElementById('compEik').value, vat: document.getElementById('compVat').value, address: document.getElementById('compAddress').value }).then(r=>{ companiesDB=r; closeCompanyEditor(); renderCompaniesTable(); initDropdowns(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при запис на фирма: " + e.toString()); });
     }
-    function deleteCompany(k) {
-        if (!checkAccess()) return;
-        if(confirm(`Сигурни ли сте, че искате да изтриете фирма "${k}"?`)) {
-            showLoader("Изтриване...");
-            callAPI('deleteCompany', { name: k, author: currentUser })
-                .then(r => { companiesDB = r; renderCompaniesTable(); initDropdowns(); hideLoader(); })
-                .catch(e => { alert(e.message); hideLoader(); });
-        }
+    function renderCompaniesTable() {
+        const b = document.getElementById('companiesTableBody'); b.innerHTML = ''; 
+        Object.keys(companiesDB).sort().forEach(k => { b.innerHTML += `<tr><td><strong>${k}</strong></td><td style="font-size:11px;">ЕИК: ${companiesDB[k].eik}<br>Адрес: ${companiesDB[k].address}</td><td><span class="action-btn action-edit" onclick="openCompanyEditor('${k}')">✎</span></td></tr>`; }); 
     }
 
-    // --- ФУНКЦИИ СЛУЖИТЕЛИ ---
-    function addIssuer() { 
-        if (!checkAccess()) return;
-        const n = document.getElementById('newIssuerName').value.trim(); if(!n) return; 
-        disableBtn('btnSaveIss'); showLoader(); 
-        callAPI('addIssuer', { name: n, author: currentUser })
-            .then(r => { issuersDB = r; document.getElementById('newIssuerName').value = ''; renderIssuersTable(); initDropdowns(); hideLoader(); enableBtn('btnSaveIss'); })
-            .catch(e => { alert(e.message); hideLoader(); enableBtn('btnSaveIss'); });
-    }
-    function deleteIssuer(n) { 
-        if (!checkAccess()) return;
-        if(confirm("Изтриване?")) { 
-            showLoader(); 
-            callAPI('deleteIssuer', { name: n, author: currentUser })
-                .then(r => { issuersDB = r; renderIssuersTable(); initDropdowns(); hideLoader(); })
-                .catch(e => { alert(e.message); hideLoader(); });
-        } 
-    }
-    function renderIssuersTable() { 
-        const b = document.getElementById('issuersTableBody'); b.innerHTML = ''; 
-        if (isReadOnly) { b.innerHTML = `<tr><td colspan="2" style="text-align:center; padding: 20px; color:#7f8c8d;">🔒 Данните са скрити.</td></tr>`; return; }
-        issuersDB.forEach(n => { b.innerHTML += `<tr><td><strong>${n}</strong></td><td style="text-align:center;"><span class="action-btn action-delete" onclick="deleteIssuer('${n}')">✖</span></td></tr>`; }); 
-    }
+    function addIssuer() { const n = document.getElementById('newIssuerName').value.trim(); if(!n) return; showLoader(); callAPI('addIssuer',{name:n}).then(r=>{ issuersDB=r; document.getElementById('newIssuerName').value=''; renderIssuersTable(); initDropdowns(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при добавяне на служител: " + e.toString()); }); }
+    function deleteIssuer(n) { if(confirm("Изтриване?")){ showLoader(); callAPI('deleteIssuer',{name:n}).then(r=>{ issuersDB=r; renderIssuersTable(); initDropdowns(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при изтриване на служител: " + e.toString()); }); } }
+    function renderIssuersTable() { const b = document.getElementById('issuersTableBody'); b.innerHTML = ''; issuersDB.forEach(n => { b.innerHTML += `<tr><td><strong>${n}</strong></td><td style="text-align:center;"><span class="action-btn action-delete" onclick="deleteIssuer('${n}')">✖</span></td></tr>`; }); }
 
-    // --- ФУНКЦИИ АРХИВ ---
+    function filterArchive(type) {
+        archiveFilter = type;
+        document.getElementById('btnFiltTok').classList.toggle('active', type === 'tok'); document.getElementById('btnFiltVoda').classList.toggle('active', type === 'voda');
+        renderArchiveTable();
+    }
+    
     function saveToArchive() {
-        if (!checkAccess()) return;
-        if (!currentProtocolData.client) return; 
+        const btn = document.getElementById('btnSaveArchiveTop');
+        btn.disabled = true;
+        btn.innerText = "⏳ ЗАПАЗВАНЕ...";
         
-        disableBtn('btnSaveArchiveTop'); showLoader("Запазване в Архива...");
-        
-        const qInvNum = document.getElementById('quickInvNum').value.trim();
-        let qInvDate = document.getElementById('quickInvDate').value;
-        if(qInvDate && qInvDate.includes('-')) { const [y, m, d] = qInvDate.split('-'); qInvDate = `${d}.${m}.${y}`; }
-        
-        // Записваме всички данни, включително новите Колони K и L
+        showLoader("Запазване в Архива...");
+        let qNum = document.getElementById('quickInvNum').value.trim(), qDate = document.getElementById('quickInvDate').value;
+        if(qDate && qDate.includes('-')) { const [y, m, d] = qDate.split('-'); qDate = `${d}.${m}.${y}`; }
         const rec = { 
-            id: Date.now().toString(), 
-            date: currentProtocolData.date, 
-            client: currentProtocolData.client, 
-            totalVat: (currentProtocolData.totalNoVat * 1.20).toFixed(2), 
-            invNum: qInvNum, 
-            invDate: qInvDate, 
-            createdBy: currentUser, 
-            period: currentProtocolData.period, 
-            lastRead: currentProtocolData.lastRead,
-            realReadDate: currentProtocolData.realReadDate,
-            realReadValue: currentProtocolData.realReadValue
+            id: Date.now().toString(), date: currentProtocolData.date, client: currentProtocolData.client, totalVat: (currentProtocolData.totalNoVat * 1.20).toFixed(2), 
+            invNum: qNum, invDate: qDate, createdBy: currentUser, period: currentProtocolData.period, 
+            lastReadT1: currentProtocolData.lastReadT1, lastReadT2: currentProtocolData.lastReadT2, 
+            realReadDate: currentProtocolData.realReadDate, realReadT1: currentProtocolData.realReadT1, realReadT2: currentProtocolData.realReadT2, docType: currentProtocolData.docType,
+            oldReadT1: currentProtocolData.oldReadT1 || "",
+            oldReadT2: currentProtocolData.oldReadT2 || ""
         }; 
-        
-        callAPI('saveArchiveRecord', { recordStr: JSON.stringify(rec) })
-            .then(r => { 
-                archiveDB = r; 
-                document.getElementById('quickInvNum').value = ""; document.getElementById('quickInvDate').value = "";
-                alert('Успешен запис!'); openTab('section-archive', document.querySelectorAll('.tab-btn')[4]); 
-                hideLoader(); enableBtn('btnSaveArchiveTop'); 
-            })
-            .catch(e => { alert(e.message); hideLoader(); enableBtn('btnSaveArchiveTop'); });
+        callAPI('saveArchiveRecord', { recordStr: JSON.stringify(rec) }).then(r=>{ 
+            archiveDB=r; alert('Успешен запис!'); filterArchive(currentProtocolData.docType); openTab('section-archive', document.querySelectorAll('.tab-btn')[4]); hideLoader(); 
+            btn.disabled = false; btn.innerText = "💾 ЗАПАЗИ В АРХИВ";
+        }).catch(e=>{ 
+            hideLoader(); alert("Грешка при запис в архива: " + e.toString()); 
+            btn.disabled = false; btn.innerText = "💾 ЗАПАЗИ В АРХИВ";
+        });
     }
     
     function renderArchiveTable() {
-        const b = document.getElementById('archiveTableBody'), fs = document.getElementById('filterStartDate').value, fe = document.getElementById('filterEndDate').value; b.innerHTML = ''; 
-        if (isReadOnly) { b.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; color:#7f8c8d;">🔒 Данните са скрити. Моля, въведете вашия код за достъп горе.</td></tr>`; return; }
-        let fA = [...archiveDB].reverse();
-        if (fs || fe) { fA = fA.filter(r => { if(!r.createdAt) return true; const d = new Date(r.createdAt).setHours(0,0,0,0), s = fs ? new Date(fs).setHours(0,0,0,0) : null, e = fe ? new Date(fe).setHours(23,59,59,999) : null; if(s && e) return d>=s && d<=e; if(s) return d>=s; if(e) return d<=e; return true; }); }
-        
+        const b = document.getElementById('archiveTableBody'); b.innerHTML = ''; 
+        let fA = archiveDB.filter(r => r.docType === archiveFilter).reverse();
         fA.forEach(r => { 
             const c = r.invNum && r.invNum.trim() !== ""; 
-            let invText = c ? `<span style="font-size:12px; font-weight:bold;">№ ${r.invNum}</span><br><span style="font-size:10px;">${r.invDate}</span>` : `<button type="button" style="background:#e67e22; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.1);" onclick="openArchiveEditor('${r.id}')">➕ Въведи</button>`;
-            let creatorName = r.createdBy ? r.createdBy.replace('ЛИМ_', '') : "Н/Д";
+            let invText = c ? `<span style="font-size:11px; font-weight:bold;">№ ${r.invNum}</span><br><span style="font-size:10px;">${r.invDate}</span>` : `<button type="button" style="background:#e67e22; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="openArchiveEditor('${r.id}')">Въведи</button>`;
+            let bdg = r.docType === 'tok' ? '<span class="badge badge-tok">⚡ ТОК</span>' : '<span class="badge badge-voda">💧 ВОДА</span>';
             
-            b.innerHTML += `<tr class="${c ? 'archive-invoiced' : 'archive-pending'}">
-                <td style="font-size:11px; color:#555; line-height: 1.3;">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('bg-BG') : "Н/Д"}<br><span style="font-size:9px; color:#95a5a6;">От: ${creatorName}</span></td>
-                <td style="line-height: 1.3;"><strong>${r.client}</strong><br><span style="font-size:10px; color:var(--text-muted);">Пр. дата: ${r.date}</span></td>
-                <td style="line-height: 1.3;"><strong style="color:var(--primary); font-size:11px;">${r.period || "-"}</strong><br><span style="font-size:11px; font-weight:bold; color:#d35400;">Отчет: ${r.lastRead || "-"}</span></td>
+            let repTxt = "";
+            if (r.lastReadT2 && r.lastReadT2 !== "undefined") {
+                repTxt = `T1: ${r.lastReadT1}<br>T2: ${r.lastReadT2}`;
+            } else {
+                repTxt = `${r.lastReadT1}`;
+            }
+
+            b.innerHTML += `<tr style="background:${c?'#e8f8f5':'#fff9c4'}; border-left:4px solid ${c?'#2ecc71':'#f1c40f'};">
+                <td style="font-size:11px; color:#555;">${bdg}<br>${r.createdAt ? new Date(r.createdAt).toLocaleDateString('bg-BG') : ""}</td>
+                <td style="font-size:11px;"><strong>${r.client}</strong></td>
+                <td style="font-size:11px;"><strong style="color:var(--primary);">${r.period}</strong><br>Отчет: ${repTxt}</td>
                 <td style="font-size: 13px;"><strong>${r.totalVat} €</strong></td>
                 <td style="text-align:center;">${invText}</td>
                 <td style="text-align:center;"><span class="action-btn action-edit" onclick="openArchiveEditor('${r.id}')">✎</span></td>
             </tr>`; 
         });
     }
-    
-    function openArchiveEditor(id) { 
-        if (!checkAccess()) return;
-        const r = archiveDB.find(x => String(x.id) === String(id)); 
-        if(!r) return; 
-        document.getElementById('archEditId').value = r.id; 
-        document.getElementById('archEditInvNum').value = r.invNum || ""; 
-        document.getElementById('archEditInvDate').value = "";
-        const editor = document.getElementById('archiveEditor');
-        editor.style.display = 'block'; 
-        setTimeout(() => { try { window.scrollTo(0, editor.offsetTop - 20); document.getElementById('archEditInvNum').focus(); } catch(e) {} }, 100);
-    }
-    
+    function openArchiveEditor(id) { const r = archiveDB.find(x => String(x.id) === String(id)); if(!r) return; document.getElementById('archEditId').value = r.id; document.getElementById('archEditInvNum').value = r.invNum || ""; document.getElementById('archiveEditor').style.display = 'block'; setTimeout(() => { window.scrollTo(0, document.getElementById('archiveEditor').offsetTop - 20); }, 100); }
     function closeArchiveEditor() { document.getElementById('archiveEditor').style.display = 'none'; }
-    
     function saveArchiveRecord() { 
-        if (!checkAccess()) return;
-        const i = document.getElementById('archEditId').value, n = document.getElementById('archEditInvNum').value;
-        let d = document.getElementById('archEditInvDate').value; 
+        let i = document.getElementById('archEditId').value, n = document.getElementById('archEditInvNum').value, d = document.getElementById('archEditInvDate').value; 
         if(d && d.includes('-')) { const [y, m, day] = d.split('-'); d = `${day}.${m}.${y}`; }
-        disableBtn('btnSaveArchEdit'); showLoader("Запазване..."); 
-        callAPI('updateArchiveInvoice', { id: i, invNum: n, invDate: d, author: currentUser })
-            .then(r => { archiveDB = r; closeArchiveEditor(); renderArchiveTable(); hideLoader(); enableBtn('btnSaveArchEdit'); })
-            .catch(e => { alert(e.message); hideLoader(); enableBtn('btnSaveArchEdit'); });
+        showLoader(); callAPI('updateArchiveInvoice', { id: i, invNum: n, invDate: d }).then(r => { archiveDB=r; closeArchiveEditor(); renderArchiveTable(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при обновяване на фактура: " + e.toString()); });
     }
 </script>
 </body>

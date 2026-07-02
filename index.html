@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Генератор Префактуриране (V2.6 - Финал)</title>
+    <title>Елетромери и Водомери РПЛ-р01</title>
     <style>
         :root { --primary: #e67e22; --primary-dark: #d35400; --success: #27ae60; --success-dark: #229954; --danger: #e74c3c; --danger-dark: #c0392b; --warning: #f1c40f; --warning-dark: #f39c12; --bg-body: #f4f7f6; --bg-card: #ffffff; --text-main: #2c3e50; --text-muted: #7f8c8d; --border-light: #ecf0f1; --border-input: #bdc3c7; }
         body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: var(--bg-body); color: var(--text-main); -webkit-tap-highlight-color: transparent; transition: background-color 0.4s; }
@@ -624,17 +624,11 @@
             let interp1 = (n1 - o1) * c;
             let interp2 = (n2 - o2) * c;
 
-            if(currentWorkingType === 'voda') { 
-                cTot1 = Number(interp1.toFixed(3)); 
-                cTot2 = Number(interp2.toFixed(3)); 
-                dbCalc1 = (o1 + cTot1).toFixed(3); dbCalc2 = (o2 + cTot2).toFixed(3);
-                cnTxt = `Т1: ${dbCalc1} / Т2: ${dbCalc2}`;
-            } else { 
-                cTot1 = Math.round(interp1); 
-                cTot2 = Math.round(interp2); 
-                dbCalc1 = Math.round(o1 + cTot1); dbCalc2 = Math.round(o2 + cTot2);
-                cnTxt = `Т1: ${dbCalc1} / Т2: ${dbCalc2}`;
-            }
+            cTot1 = Math.round(interp1); 
+            cTot2 = Math.round(interp2); 
+            dbCalc1 = Math.round(o1 + cTot1); 
+            dbCalc2 = Math.round(o2 + cTot2);
+            cnTxt = `Т1: ${dbCalc1} / Т2: ${dbCalc2}`;
             
             dbReal1 = n1; dbReal2 = n2;
             oTxt = `Т1: ${o1} / Т2: ${o2}`; nTxt = `Т1: ${n1} / Т2: ${n2}`;
@@ -642,15 +636,9 @@
             let o0 = parseFloat(document.getElementById('oldT').value), n0 = parseFloat(document.getElementById('newT').value);
             let interp0 = (n0 - o0) * c;
 
-            if(currentWorkingType === 'voda') { 
-                cTot1 = Number(interp0.toFixed(3)); 
-                dbCalc1 = (o0 + cTot1).toFixed(3);
-                cnTxt = `${dbCalc1}`;
-            } else { 
-                cTot1 = Math.round(interp0); 
-                dbCalc1 = Math.round(o0 + cTot1);
-                cnTxt = `${dbCalc1}`;
-            }
+            cTot1 = Math.round(interp0); 
+            dbCalc1 = Math.round(o0 + cTot1);
+            cnTxt = `${dbCalc1}`;
             
             dbReal1 = n0; dbReal2 = "";
             oTxt = `${o0}`; nTxt = `${n0}`;

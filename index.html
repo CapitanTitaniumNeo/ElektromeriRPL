@@ -3,1414 +3,878 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Пътна Книжка - Enterprise</title>
-    
+    <title>Елетромери и Водомери РПЛ-р01</title>
     <style>
-        :root {
-            --primary: #2980b9; --primary-dark: #1f618d; 
-            --success: #27ae60; --success-dark: #229954; 
-            --danger: #e74c3c; --warning: #f39c12; 
-            --bg-body: #f4f7f6; --bg-card: #ffffff; 
-            --text-main: #2c3e50; --border-input: #bdc3c7;
-        }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: var(--bg-body); color: var(--text-main); }
-        
+        :root { --primary: #e67e22; --primary-dark: #d35400; --success: #27ae60; --success-dark: #229954; --danger: #e74c3c; --danger-dark: #c0392b; --warning: #f1c40f; --warning-dark: #f39c12; --bg-body: #f4f7f6; --bg-card: #ffffff; --text-main: #2c3e50; --text-muted: #7f8c8d; --border-light: #ecf0f1; --border-input: #bdc3c7; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: var(--bg-body); color: var(--text-main); -webkit-tap-highlight-color: transparent; transition: background-color 0.4s; }
+        .system-topbar { background: #2c3e50; color: #ecf0f1; padding: 10px 15px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; z-index: 101;}
+        .system-topbar strong { color: var(--primary); font-weight: bold; }
+        .btn-refresh { background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; margin-left: 10px; }
+        .btn-logout { background: var(--danger); color: white; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-left: 10px; }
         #authOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #2c3e50; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;}
-        #loaderOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.9); z-index: 10001; display: none; flex-direction: column; justify-content: center; align-items: center; color: var(--primary); font-weight: bold; font-size: 16px;}
+        .auth-box { background: white; padding: 30px; border-radius: 8px; text-align: center; color: #333; max-width: 300px; width: 90%; }
+        .auth-box input { width: 100%; height: 45px; margin: 15px 0; border: 2px solid #bdc3c7; border-radius: 5px; text-align: center; font-size: 16px; }
+        .auth-box button { background: var(--success); height: 45px; width: 100%; color: white; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; }
+        #loaderOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.95); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; font-size: 16px; font-weight: bold; color: var(--primary); text-align: center;}
         .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .auth-box { background: white; padding: 30px; border-radius: 8px; text-align: center; color: #333; max-width: 320px; width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2);}
-        .auth-box input { width: 100%; height: 45px; margin: 10px 0 20px; border: 2px solid var(--border-input); border-radius: 5px; text-align: center; font-size: 16px; box-sizing: border-box;}
-        .auth-box button { background: var(--primary); height: 45px; width: 100%; color: white; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;}
-        
-        .system-topbar { background: #2c3e50; color: #ecf0f1; padding: 10px 15px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 101;}
-        .btn-logout { background: var(--danger); color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold;}
-        .tabs { display: flex; background: var(--bg-card); box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; white-space: nowrap; position: sticky; top: 38px; z-index: 100;}
-        .tab-btn { flex: 1; padding: 15px 10px; text-align: center; background: none; border: none; border-bottom: 3px solid transparent; font-size: 12px; font-weight: bold; color: #7f8c8d; cursor: pointer; }
-        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f9fbfd;}
-        .container { padding: 15px; max-width: 900px; margin: 0 auto; }
-        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tabs { display: flex; background: var(--bg-card); box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; overflow-x: auto; white-space: nowrap;}
+        .tab-btn { flex: 1; min-width: 75px; padding: 16px 5px; text-align: center; background: none; border: none; border-bottom: 3px solid transparent; font-size: 12px; font-weight: 700; color: #95a5a6; cursor: pointer; transition: all 0.2s; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f9fbfd; }
+        .container { padding: 12px; max-width: 1000px; margin: 0 auto; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: var(--bg-card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin-bottom: 15px; border-top: 4px solid var(--primary); transition: border-color 0.4s; }
+        h3 { font-size: 14px; color: var(--text-muted); border-bottom: 1px solid var(--border-light); padding-bottom: 8px; text-transform: uppercase; margin-top: 0; }
+        .form-group { margin-bottom: 15px; } label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; color: #34495e;}
+        input[type="text"], input[type="number"], input[type="date"], input[type="month"], select { width: 100%; height: 50px; padding: 10px 12px; border: 1px solid var(--border-input); border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #fdfdfd; transition: border-color 0.2s; }
+        input:focus, select:focus { border-color: var(--primary); outline: none; background-color: #fff; box-shadow: 0 0 0 3px rgba(0,0,0,0.05);}
+        .row { display: flex; gap: 12px; } .row .form-group { flex: 1; }
+        button { height: 50px; background-color: var(--primary); color: #fff; border: none; font-size: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; transition: 0.2s;} button:active { transform: translateY(2px); } button:disabled { background-color: #95a5a6; cursor: not-allowed;}
+        .btn-green { background-color: var(--success); } .btn-cancel { background-color: #95a5a6;}
+        .type-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        .type-selector button { flex: 1; border: 2px solid transparent; background: #ecf0f1; color: #7f8c8d; height: 55px; font-size: 16px; }
+        .type-selector button.sel-tok.active { background: #e67e22; color: #fff; box-shadow: 0 4px 10px rgba(230,126,34,0.3); }
+        .type-selector button.sel-voda.active { background: #2980b9; color: #fff; box-shadow: 0 4px 10px rgba(41,128,185,0.3); }
+        .tariff-toggle { display: flex; gap: 10px; margin-bottom: 20px; } .tariff-toggle label { flex: 1; background: #f1f2f6; padding: 14px 5px; text-align: center; border-radius: 8px; border: 1px solid #dcdde1; font-size: 14px; font-weight: bold; color: var(--text-muted); cursor: pointer; } .tariff-toggle input[type="radio"] { display: none; } .tariff-toggle label:has(input[type="radio"]:checked) { background: var(--primary); border-color: var(--primary-dark); color: white;}
         
-        .card { background: var(--bg-card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px; border-top: 4px solid var(--primary); }
-        h3 { margin-top: 0; color: var(--primary-dark); border-bottom: 1px solid #ecf0f1; padding-bottom: 10px; font-size: 16px; text-transform: uppercase;}
-        .form-group { margin-bottom: 15px; position: relative;}
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #34495e;}
-        input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border-input); border-radius: 6px; box-sizing: border-box; font-size: 15px; background: #fff; transition: 0.3s; font-family: inherit;}
-        input[type="text"], input[type="number"], input[type="date"], input[type="time"], select { height: 45px; }
-        input[readonly] { background: #f4f6f7; color: #7f8c8d; cursor: not-allowed;}
-        .row { display: flex; gap: 15px; flex-wrap: wrap; }
-        .row .form-group { flex: 1; min-width: 200px; }
-        button.btn-main { background: var(--success); color: white; border: none; height: 50px; border-radius: 6px; font-size: 15px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px;}
-        button.btn-sec { background: #95a5a6; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;}
-        .btn-del { background: var(--danger); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .table-wrapper { max-height: 30vh; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 8px; margin-top: 15px; background-color: #fff; }
+        .table-wrapper-large { max-height: 50vh; }
+        .data-table, .archive-table { width: 100%; border-collapse: collapse; margin-top: 0; font-size: 13px; } 
+        .data-table th, .data-table td, .archive-table th, .archive-table td { border-bottom: 1px solid var(--border-light); padding: 12px 8px; text-align: left; vertical-align: middle;} 
+        .data-table th, .archive-table th { background-color: #f8f9fa; color: var(--text-muted); position: sticky; top: 0; z-index: 10; box-shadow: inset 0 -2px 0 var(--border-light); }
 
-        .suggestion-box { display: inline-block; background: #fff3cd; color: #856404; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-bottom: 5px; border: 1px solid #ffeeba; animation: fadeIn 0.3s;}
-        .signature-wrapper { border: 2px dashed var(--border-input); background: #fafafa; border-radius: 6px; position: relative; margin-top: 5px; transition: 0.3s;}
-        canvas { width: 100%; height: 150px; touch-action: none; cursor: crosshair;}
-        .btn-clear-sig { position: absolute; top: 10px; right: 10px; background: rgba(231, 76, 60, 0.9); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight:bold;}
-        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px;}
-        th, td { border-bottom: 1px solid #ecf0f1; padding: 10px 5px; text-align: left; }
-        th { background: #f8f9fa; color: #7f8c8d; position: sticky; top:0; z-index:10;}
+        .action-btn { font-weight: bold; font-size: 18px; padding: 5px; cursor: pointer; display: inline-block; margin: 0 5px;} .action-edit { color: var(--primary); } .action-delete { color: var(--danger); }
+        .info-box { background-color: #e8f8f5; border-left: 4px solid #1abc9c; padding: 12px; font-size: 13px; margin-bottom: 15px; color: #16a085; line-height: 1.4; border-radius: 4px;} .error-msg { background-color: #fce4e4; border-left: 4px solid var(--danger); padding: 12px; font-size: 13px; margin-bottom: 15px; color: var(--danger-dark); display: none; font-weight: bold; border-radius: 4px;}
+        .preview-doc { background: #fff; padding: 25px 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.08); font-size: 12px; line-height: 1.5; color: #000; } .letterhead { border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; text-align: right; } .lh-details { font-size: 10px; color: #555; } .lh-details strong { font-size: 14px; color: #000;}
+        .prot-header { text-align: center; margin-bottom: 20px; } .prot-header h1 { font-size: 16px; margin: 0; font-weight: bold; text-transform: uppercase;}
+        table.prot-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 11px;} table.prot-table th, table.prot-table td { border: 1px solid #000; padding: 8px 6px; text-align: left; } table.prot-table th { background-color: #f0f0f0; text-align: center; font-weight: bold;} .text-center { text-align: center; } .text-right { text-align: right; } .highlight { font-weight: bold; }
+        .signatures { display: flex; justify-content: flex-end; margin-top: 40px; page-break-inside: avoid;} .signature-box { width: 50%; text-align: center; } .signature-box p { margin-bottom: 5px; font-weight: bold; font-size: 13px; text-align: left;} .signature-line { border-top: 1px solid #000; width: 100%; display: inline-block; margin-top: 40px;}
+        .read-block { padding: 8px 10px; margin-bottom: 10px; border-radius: 4px; } .read-real { border-left: 4px solid #7f8c8d; background: #f4f6f7; color: #333;} .read-interp { border-left: 4px solid var(--primary); background: #fffbf2; color: #000;} .methodology-box { font-size: 11px; background: #f9f9f9; border-left: 3px solid var(--primary); padding: 8px 10px; margin-bottom: 15px; color: #333; }
         
-        .archive-table-container { max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; margin-bottom: 15px;}
-        .chk-box { width: 16px; height: 16px; cursor: pointer; }
-        .archive-table tr:hover { background: #f1f8ff; cursor: pointer; }
+        #objectEditor, #companyEditor, #issuerEditor, #archiveEditor { display: none; background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #dcdde1; margin-bottom: 15px;}
+        .badge { display: inline-block; padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; margin-bottom: 4px;} .badge-tok { background: #e67e22; } .badge-voda { background: #2980b9; }
 
-        .autocomplete-wrapper { position: relative; display: block; }
-        .autocomplete-items { position: absolute; border: 1px solid #d4d4d4; border-bottom: none; border-top: none; z-index: 99; top: 100%; left: 0; right: 0; background: #fff; max-height: 200px; overflow-y: auto; border-radius: 0 0 6px 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .autocomplete-items div { padding: 10px; cursor: pointer; border-bottom: 1px solid #d4d4d4; font-size: 13px; line-height: 1.4; color: #2c3e50; }
-        .autocomplete-items div:hover { background-color: #e9e9e9; }
+        .hint-container { display: none; font-size: 11px; color: var(--primary); margin-bottom: 4px; font-weight: bold; }
+        .hint-btn { cursor: pointer; text-decoration: underline; color: var(--primary); margin-left: 5px; }
 
-        .print-doc { background: #fff; color: #000; }
-        
-        /* Стилове за архивите - табове */
-        .archive-switcher { display: flex; gap: 10px; margin-bottom: 15px; }
-        .archive-btn { flex: 1; padding: 10px; border: 1px solid var(--primary); background: #fff; color: var(--primary); font-weight: bold; border-radius: 6px; cursor: pointer; }
-        .archive-btn.active { background: var(--primary); color: #fff; }
-
-        /* Стилове за бланката на Заповедта (Компактен А4 формат) */
-        .order-print-wrapper { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.1; font-size: 11px; color: #1a202c; padding: 10mm; box-sizing: border-box; max-height: 297mm; overflow: hidden; }
-        .order-print-wrapper h1 { text-align: center; font-size: 15px; color: #2c5282; text-transform: uppercase; margin: 0 0 3px 0; border: none;}
-        .order-print-wrapper h2 { font-size: 12px; color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 1px; margin-top: 8px; margin-bottom: 4px; text-transform: uppercase;}
-        .order-print-wrapper .company-header { display: flex; justify-content: space-between; border-bottom: 2px solid #2c5282; padding-bottom: 3px; margin-bottom: 8px; font-size: 10px; color: #4a5568;}
-        .order-print-wrapper .data-group { margin-bottom: 4px; }
-        .order-print-wrapper .data-row { display: flex; margin-bottom: 2px; font-size: 11px; align-items: center; }
-        .order-print-wrapper .label { font-weight: 600; width: 140px; flex-shrink: 0; }
-        .order-print-wrapper .value { flex-grow: 1; border-bottom: 1px dotted #a0aec0; color: #2c5282; font-weight: 500; padding-left: 5px; }
-        .order-print-wrapper .fixed-field { background-color: #f7fafc; border: 1px solid #cbd5e0; padding: 1px 4px; border-radius: 4px; flex-grow: 1; font-weight: bold; font-size: 11px; }
-        .order-print-wrapper .text-block { background-color: #f7fafc; border-left: 3px solid #cbd5e0; padding: 4px 8px; margin: 2px 0; font-size: 11px; font-style: italic; color: #2c5282; min-height: 20px; }
-        .order-print-wrapper table { width: 100%; border-collapse: collapse; margin-top: 4px; margin-bottom: 6px; font-size: 10px; }
-        .order-print-wrapper th, .order-print-wrapper td { border: 1px solid #cbd5e0; padding: 2px 4px; text-align: left; }
-        .order-print-wrapper th { background-color: #edf2f7; font-weight: 600; color: #4a5568; }
-        
-        @media print {
-            @page { size: A4 portrait; margin: 10mm; }
-            body { background: #fff; margin: 0; padding: 0; }
-            .system-topbar, .tabs, .tab-content:not(#tab-print), button, .archive-table-container, .archive-switcher, p.no-print { display: none !important; }
-            #tab-print { display: block !important; padding: 0;}
-            .print-doc { border: none; box-shadow: none; padding: 0; width: 100%; }
-            .page-break { page-break-after: always; clear: both; }
-            .order-print-wrapper { padding: 0; height: 100%; max-height: 277mm; }
-            .order-print-wrapper .fixed-field { border: 1px solid #cbd5e0; background: none; color: #1a202c; }
-            .order-print-wrapper .text-block { border: 1px solid #cbd5e0; border-left: 3px solid #cbd5e0; }
+        @media print { 
+            @page { size: A4; margin: 10mm 12mm; } 
+            body { background: none; font-size: 11px !important; } 
+            .tabs, .system-topbar, #section-bneb, #section-wizard, #section-objects, #section-archive, .print-btn-group, .error-msg, #quickInvoiceEntry { display: none !important; } 
+            #section-preview { display: block !important; padding: 0 !important; margin: 0 !important;} 
+            .preview-doc { box-shadow: none !important; padding: 0 !important; margin: 0 !important; font-size: 11px !important; page-break-inside: avoid; } 
+            table.prot-table { font-size: 11px !important; margin: 8px 0 !important; } table.prot-table th, table.prot-table td { padding: 4px 5px !important; } 
+            table.prot-table th { background-color: #e0e0e0 !important; -webkit-print-color-adjust: exact; }
+            .letterhead { border-bottom: 2px solid #000 !important; margin-bottom: 10px !important; padding-bottom: 5px !important; } 
+            .prot-header { margin-bottom: 10px !important; } .prot-header h1 { font-size: 14px !important; }
+            .methodology-box { margin-bottom: 8px !important; padding: 5px 8px !important; font-size: 9px !important; } 
+            .read-block { margin-bottom: 5px !important; padding: 4px 8px !important; } 
+            .signatures { margin-top: 15px !important; page-break-inside: avoid;} 
+            .table-wrapper { max-height: none !important; overflow: visible !important; border: none !important; }
+            .data-table th, .archive-table th { position: static !important; box-shadow: none !important; border-bottom: 1px solid #000 !important;}
         }
     </style>
 </head>
 <body>
 
-<div id="authOverlay">
-    <div class="auth-box">
-        <h2 style="color:var(--primary); margin-top:0;">Пътни Листове</h2>
-        <p style="font-size:13px; color:#7f8c8d;">Вход в системата</p>
-        <input type="text" id="loginUser" placeholder="Потребител">
-        <input type="password" id="loginPass" placeholder="Парола">
-        <button onclick="login()">ВХОД</button>
-        <div id="loginError" style="color: var(--danger); font-size: 13px; margin-top: 15px; display: none; font-weight:bold;"></div>
+    <div id="authOverlay">
+        <div class="auth-box">
+            <h2>Вход в системата</h2>
+            <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 20px;">Моля, въведете вашата парола за достъп</p>
+            <input type="password" id="authInput" placeholder="Парола...">
+            <button onclick="attemptLogin()">ВХОД ➔</button>
+            <div id="authError" style="color: var(--danger); font-size: 12px; margin-top: 10px; font-weight: bold; display: none;"></div>
+        </div>
     </div>
-</div>
 
-<div id="loaderOverlay">
-    <div class="spinner"></div>
-    <div id="loaderText">Обработка...</div>
-</div>
+    <div id="loaderOverlay">
+        <div class="spinner"></div>
+        <div id="loaderText">Обработка...</div>
+    </div>
 
-<div class="system-topbar">
-    <div>👤 <strong id="currentUser"></strong> <span id="roleBadge" style="background:#f39c12; color:#fff; padding:2px 5px; border-radius:3px; font-size:10px; margin-left:5px; display:none;">ADMIN</span> <button class="btn-logout" onclick="logout()">Изход</button></div>
-    <div id="clock">--:--</div>
-</div>
+    <div class="system-topbar">
+        <div>👤 Режим: Редакция | <strong id="topbarUser"></strong> <button class="btn-logout" onclick="logout()">Изход</button></div>
+        <div><button class="btn-refresh" onclick="silentRefresh()" title="Опресни данните">🔄</button> <span id="clockInfo" style="margin-left: 10px;"></span></div>
+    </div>
 
-<nav class="tabs">
-    <button class="tab-btn" onclick="openTab('tab-cars', this)">АВТОПАРК</button>
-    <button class="tab-btn" onclick="openTab('tab-orders', this, initOrderCanvas)">📝 НОВА ЗАПОВЕД</button>
-    <button class="tab-btn active" onclick="openTab('tab-new', this, initTripCanvas)">🚗 НОВ ПЪТЕН ЛИСТ</button>
-    <button class="tab-btn" onclick="openTab('tab-archive', this)" style="color:var(--primary-dark);">АРХИВ / ПЕЧАТ</button>
-    <button class="tab-btn" onclick="openTab('tab-print', this)" id="btnTabPrint" style="display:none; color:var(--success-dark);">📄 ПРЕГЛЕД</button>
-</nav>
+    <nav class="tabs">
+        <button type="button" class="tab-btn" onclick="openTab('section-bneb', this)">1. ЦЕНИ</button>
+        <button type="button" class="tab-btn active" onclick="openTab('section-wizard', this)">2. ДАННИ</button>
+        <button type="button" class="tab-btn" onclick="openTab('section-objects', this)">3. ОБЕКТИ</button>
+        <button type="button" class="tab-btn" onclick="openTab('section-preview', this)">4. ДОКУМЕНТ</button>
+        <button type="button" class="tab-btn" onclick="openTab('section-archive', this)">5. АРХИВ</button>
+    </nav>
 
 <main class="container">
-    <!-- АВТОПАРК -->
-    <section id="tab-cars" class="tab-content">
-        <!-- ДЕКЛАРАЦИЯ И ПРАВИЛА ЗА МПС -->
-        <div class="card" id="rulesCard">
-            <h3>📜 Политика за служебните автомобили (AW-FN-004)</h3>
-            <p style="font-size:13px; color:#34495e; line-height:1.4; margin-bottom: 15px;">
-                Всеки водач е длъжен да е запознат и <strong>вече да е подписал на хартия</strong> Международния регламент за МПС. <br>
-                <em>Накратко: Спазвайте ЗДвП, не шофирайте след употреба на алкохол/наркотици, пазете автомобила чист и изправен, не оставяйте ценности вътре и не преотстъпвайте управлението на неоторизирани лица.</em>
-            </p>
-            
-            <div id="agreementSection" style="background: #fff3cd; padding: 15px; border: 1px solid #ffeeba; border-radius: 6px;">
-                <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; font-weight: bold; color: #856404;">
-                    <input type="checkbox" id="chkAgreeRules" style="width: 20px; height: 20px; flex-shrink: 0;">
-                    Потвърждавам, че съм подписал/а Декларацията на хартия и стриктно спазвам правилата за ползване на МПС.
-                </label>
-                <button class="btn-main" style="height: 35px; margin-top: 10px; background: #856404; font-size: 13px;" onclick="agreeToRules()">ПОТВЪРДИ СТАТУСА</button>
-            </div>
-            
-            <div id="agreedStatus" style="display: none; background: #e8f8f5; color: var(--success-dark); border: 1px solid #d1f2eb; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 13px; text-align: center;">
-                <!-- Текстът ще се генерира от JS -->
-            </div>
-        </div>
-
-        <div class="card">
-            <h3>Регистър Автопарк</h3>
-            
-            <div id="addCarForm" style="display:none; padding-bottom: 15px; border-bottom: 2px dashed #ecf0f1; margin-bottom: 15px;">
+    
+    <section id="section-bneb" class="tab-content">
+        <div class="row">
+            <div class="card" style="flex:1; border-color: #e67e22;">
+                <h3>⚡ ЦЕНИ ТОК (БНЕБ)</h3>
+                <div class="info-box" style="border-color:#e67e22; color:#d35400; background:#fdf3e8;">Въведете средна цена за Мегаватчас (€).</div>
                 <div class="row">
-                    <div class="form-group"><label>Рег. Номер</label><input type="text" id="carReg" placeholder="напр. СВ 4012 ТХ"></div>
-                    <div class="form-group"><label>Марка/Модел</label><input type="text" id="carModel"></div>
-                    <div class="form-group"><label>Собственост (Фирма)</label><input type="text" id="carOwner" placeholder="напр. ТРАНСПОРТ ООД"></div>
+                    <div class="form-group"><select id="dbMonthT"><option value="01">Януари</option><option value="02">Февруари</option><option value="03">Март</option><option value="04">Април</option><option value="05">Май</option><option value="06">Юни</option><option value="07">Юли</option><option value="08">Август</option><option value="09">Септември</option><option value="10">Октомври</option><option value="11">Ноември</option><option value="12">Декември</option></select></div>
+                    <div class="form-group"><select id="dbYearT"><option value="2025">2025</option><option value="2026" selected>2026</option></select></div>
                 </div>
+                <div class="form-group"><input type="number" step="0.01" id="dbPriceT" placeholder="Напр. 89.50"></div>
+                <button type="button" class="btn-green" onclick="addPrice('tok')">+ ЗАПИШИ ТОК</button>
+            </div>
+            <div class="card" style="flex:1; border-color: #2980b9;">
+                <h3>💧 ЦЕНИ ВОДА</h3>
+                <div class="info-box" style="border-color:#2980b9; color:#2980b9; background:#ebf5fb;">Въведете официална цена за Кубик (€).</div>
                 <div class="row">
-                    <div class="form-group"><label>Вид енергия</label><select id="carFuel"><option value="Дизел">Дизел</option><option value="Бензин">Бензин</option><option value="Ток (kWh)">Електромобил (Ток)</option></select></div>
-                    <div class="form-group"><label>Разходна норма</label><input type="number" step="0.1" id="carNorm" placeholder="л. или kWh / 100км"></div>
-                    <div class="form-group"><label>Начален Километраж</label><input type="number" id="carKm"></div>
+                    <div class="form-group"><select id="dbMonthV"><option value="01">Януари</option><option value="02">Февруари</option><option value="03">Март</option><option value="04">Април</option><option value="05">Май</option><option value="06">Юни</option><option value="07">Юли</option><option value="08">Август</option><option value="09">Септември</option><option value="10">Октомври</option><option value="11">Ноември</option><option value="12">Декември</option></select></div>
+                    <div class="form-group"><select id="dbYearV"><option value="2025">2025</option><option value="2026" selected>2026</option></select></div>
                 </div>
-                <button class="btn-sec" onclick="addCar()">+ ДОБАВИ АВТОМОБИЛ В БАЗАТА</button>
+                <div class="form-group"><input type="number" step="0.001" id="dbPriceV" placeholder="Напр. 1.500"></div>
+                <button type="button" class="btn-green" onclick="addPrice('voda')">+ ЗАПИШИ ВОДА</button>
             </div>
-            
-            <div style="overflow-x:auto;">
-                <table style="margin-top:10px;">
-                    <thead><tr><th>Рег. Номер</th><th>Модел</th><th>Собственост</th><th>Гориво</th><th>Норма</th><th>Начален КМ</th></tr></thead>
-                    <tbody id="carsTable"></tbody>
+        </div>
+        <div class="card">
+            <h3>Въведени Цени</h3>
+            <div class="table-wrapper">
+                <table class="data-table" style="text-align:center;">
+                    <thead><tr><th>Период</th><th>Цена Ток (MWh)</th><th>Цена Вода (m³)</th><th></th></tr></thead>
+                    <tbody id="priceTableBody"></tbody>
                 </table>
             </div>
         </div>
     </section>
 
-    <!-- НОВА ЗАПОВЕД ЗА КОМАНДИРОВКА -->
-    <section id="tab-orders" class="tab-content">
-        <div class="card">
-            <h3>📝 Създаване на Заповед за Командировка</h3>
-            <div id="orderFormError" style="color:var(--danger); margin-bottom:15px; font-weight:bold; display:none; padding: 10px; background: #fadbd8; border-radius:4px; text-align:center;"></div>
-            
-            <div class="row">
-                <div class="form-group">
-                    <label>Дата на тръгване</label>
-                    <input type="date" id="orderDateStart">
-                </div>
-                <div class="form-group">
-                    <label>Час на тръгване</label>
-                    <input type="time" id="orderTimeStart" value="08:00">
-                </div>
-                <div class="form-group">
-                    <label>Час на връщане</label>
-                    <input type="time" id="orderTimeEnd" value="17:00">
-                </div>
-            </div>
-
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid var(--primary); margin-bottom:15px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <label style="color:var(--primary-dark); margin:0;">📍 До град / обект (Дестинация)</label>
-                    <select id="quickDestOrder" style="width:50%; height:30px; font-size:12px; padding:2px; border:1px solid #ccc; border-radius:4px;" onchange="applyQuickDest('quickDestOrder')">
-                        <option value="">-- Бързи дестинации --</option>
-                    </select>
-                </div>
-                <div class="form-group autocomplete-wrapper" style="margin-bottom:0;">
-                    <input type="text" id="orderDest" placeholder="Напр. гр. Пловдив, Обект Х" onfocus="lastFocusedLocInput = this.id">
-                </div>
-            </div>
-
-            <div style="background: #fff3cd; padding: 15px; border-radius: 6px; border: 1px solid #ffeeba; margin-bottom:15px;">
-                <label style="color:#856404;">⚙️ Бърз избор на дейност (Автоматично попълва Задача и Доклад):</label>
-                <select id="taskPresetSelector" onchange="applyOrderPreset()" style="border:1px solid #eed3d7;">
-                    <option value="" disabled selected>-- Изберете стандартна процедура --</option>
-                    <option value="scenario_1">1. Първоначален оглед и проектни решения</option>
-                    <option value="scenario_2">2. Избор и договаряне с Главен изпълнител</option>
-                    <option value="scenario_3">3. Инвеститорски контрол и надзор над Изпълнителя</option>
-                    <option value="scenario_4">4. Оперативка / Координационна среща</option>
-                    <option value="scenario_5">5. Приемане на СМР (Строително-монтажни работи)</option>
-                    <option value="custom">6. Друго (Ръчно въвеждане)</option>
-                </select>
+    <section id="section-wizard" class="tab-content active">
+        <div id="wizard-step1">
+            <div class="card">
+                <h3>📁 Стъпка 1: Обект и Уред</h3>
+                <div class="form-group"><label>Изберете Обект</label><select id="objectSelect" onchange="checkObjectTypes()"><option value="" disabled selected>-- Зареждане --</option></select></div>
                 
-                <div id="customOrderFields" style="display:none; margin-top:10px;">
-                    <div class="form-group">
-                        <label>Със следната задача:</label>
-                        <textarea id="orderPurpose" rows="3" placeholder="Опишете задачата..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Доклад за извършената работа:</label>
-                        <textarea id="orderReport" rows="3" placeholder="Опишете извършеното..."></textarea>
+                <div id="typeSelectionBlock" style="display:none;">
+                    <label>Изберете тип отчет за този обект:</label>
+                    <div class="type-selector">
+                        <button type="button" id="btnTypeTok" class="sel-tok" onclick="setWorkingType('tok')">⚡ ТОК</button>
+                        <button type="button" id="btnTypeVoda" class="sel-voda" onclick="setWorkingType('voda')">💧 ВОДА</button>
                     </div>
                 </div>
-            </div>
 
-            <div class="form-group" id="sigWrapOrder">
-                <label>Електронен подпис на командированото лице (Задължително)</label>
-                <div class="signature-wrapper">
-                    <canvas id="sigCanvasOrder"></canvas>
-                    <button class="btn-clear-sig" onclick="clearSignature('order')">Изчисти</button>
+                <div id="readsBlock" style="display: none;">
+                    <div class="form-group" style="margin-top: 15px;"><label>Избран уред (инфо)</label><input type="text" id="meterInfo" disabled style="background-color: #ecf0f1; border:none; font-weight:bold; color:var(--primary);"></div>
+                    
+                    <div class="row" style="background:#f9f9f9; padding:15px 10px 5px 10px; border-radius:8px; margin-top: 15px;">
+                        <div class="form-group"><label style="color:var(--primary);">Дата на предходна фактура (База):</label><input type="date" id="startDate"></div>
+                        <div class="form-group"><label style="color:var(--primary);">Дата на Ново засичане (Терен):</label><input type="date" id="endDate"></div>
+                    </div>
+                    
+                    <div class="info-box" style="margin-top: 10px;" id="autoFetchNotice">🤖 Базата се зарежда...</div>
+                    
+                    <div class="tariff-toggle" style="pointer-events: none; opacity: 0.8; margin-top: 15px;">
+                        <label><input type="radio" name="tariffType" id="tariffSingle" value="1" checked> <span id="lblSingle">Една</span></label>
+                        <label><input type="radio" name="tariffType" id="tariffDual" value="2"> <span id="lblDual">Две</span></label>
+                    </div>
+                    
+                    <div id="step1Error" class="error-msg" style="display:none;"></div>
+                    
+                    <div id="singleTariffDiv">
+                        <div class="row">
+                            <div class="form-group">
+                                <label>Предходно фактурирано показание (База)</label>
+                                <div id="hintOldT_container" class="hint-container">💡 Предложение: <span id="hintOldT_val"></span> <span class="hint-btn" onclick="document.getElementById('oldT').value = document.getElementById('hintOldT_val').innerText">[Въведи]</span></div>
+                                <input type="text" id="oldT" placeholder="0.000" oninput="formatNumber(this)">
+                            </div>
+                            <div class="form-group"><label style="color:var(--danger-dark);">Ново физическо засичане (Терен)</label><input type="text" id="newT" placeholder="0.000" oninput="formatNumber(this)"></div>
+                        </div>
+                    </div>
+                    <div id="dualTariffDiv" style="display: none;">
+                        <div class="row">
+                            <div class="form-group">
+                                <label id="lblOld1">База (Т1)</label>
+                                <div id="hintOldT1_container" class="hint-container">💡 Предложение: <span id="hintOldT1_val"></span> <span class="hint-btn" onclick="document.getElementById('oldT1').value = document.getElementById('hintOldT1_val').innerText">[Въведи]</span></div>
+                                <input type="text" id="oldT1" placeholder="0.000" oninput="formatNumber(this)">
+                            </div>
+                            <div class="form-group"><label id="lblNew1" style="color:var(--danger-dark);">Терен (Т1)</label><input type="text" id="newT1" placeholder="0.000" oninput="formatNumber(this)"></div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group">
+                                <label id="lblOld2">База (Т2)</label>
+                                <div id="hintOldT2_container" class="hint-container">💡 Предложение: <span id="hintOldT2_val"></span> <span class="hint-btn" onclick="document.getElementById('oldT2').value = document.getElementById('hintOldT2_val').innerText">[Въведи]</span></div>
+                                <input type="text" id="oldT2" placeholder="0.000" oninput="formatNumber(this)">
+                            </div>
+                            <div class="form-group"><label id="lblNew2" style="color:var(--danger-dark);">Терен (Т2)</label><input type="text" id="newT2" placeholder="0.000" oninput="formatNumber(this)"></div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="goToStep2()">ПРОДЪЛЖИ НАПРЕД ➔</button>
                 </div>
             </div>
-
-            <button class="btn-main" onclick="generateOrderLog()">ГЕНЕРИРАЙ И ПРЕГЛЕДАЙ ЗАПОВЕД ➔</button>
         </div>
-    </section>
 
-    <!-- НОВ ПЪТЕН ЛИСТ -->
-    <section id="tab-new" class="tab-content active">
-        <div class="card">
-            <h3>📝 Данни за пътуването (Пътен лист)</h3>
-            <div id="formError" style="color:var(--danger); margin-bottom:15px; font-weight:bold; display:none; padding: 10px; background: #fadbd8; border-radius:4px; text-align:center;"></div>
-            
-            <div class="row">
-                <div class="form-group" style="flex: 2;">
-                    <label>1. Изберете Автомобил</label>
-                    <select id="tripCar" onchange="autoFetchLastKM()"></select>
-                </div>
-                <div class="form-group" style="flex: 2;">
-                    <label>2. Заповед за командировка</label>
-                    <select id="tripOrder" onchange="autoFillFromOrder()">
-                        <option value="0">-- Локално пътуване (Без Заповед) --</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row">
-                <div class="form-group">
-                    <label>Дата на пътуване</label>
-                    <input type="date" id="tripDate">
-                </div>
-                <div class="form-group">
-                    <label>Цел на пътуването</label>
-                    <select id="tripPurpose" onchange="checkCustomPurpose()">
-                        <option value="" disabled selected>-- Изберете цел --</option>
-                        <option value="Посещение на обект">Посещение на обект</option>
-                        <option value="Посещение на администрация">Посещение на администрация</option>
-                        <option value="Посещение на експлоатационни дружества">Посещение на експлоатационни дружества</option>
-                        <option value="Среща с клиент">Среща с клиент</option>
-                        <option value="Доставка на материали">Доставка на материали</option>
-                        <option value="Техническа поддръжка">Техническа поддръжка</option>
-                        <option value="Административни нужди">Административни нужди</option>
-                        <option value="other">Друго (Въведи ръчно)...</option>
-                    </select>
-                    <input type="text" id="tripPurposeCustom" style="display:none; margin-top:5px;" placeholder="Опишете целта...">
-                </div>
-            </div>
-            
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid var(--primary); margin-bottom:15px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <label style="color:var(--primary-dark); margin:0;">📍 Маршрут (OpenStreetMap)</label>
-                    <select id="quickDest" style="width:50%; height:30px; font-size:12px; padding:2px; border:1px solid #ccc; border-radius:4px;" onchange="applyQuickDest('quickDest')">
-                        <option value="">-- Бързи дестинации (от историята) --</option>
-                    </select>
-                </div>
-                
-                <div class="form-group autocomplete-wrapper">
-                    <label style="font-size:11px; color:#7f8c8d; margin-bottom:2px;">Начална точка</label>
-                    <div style="display:flex;">
-                        <input type="text" id="locStart" readonly style="background:#f4f6f7; color:#7f8c8d; font-size: 13px; border-radius: 6px 0 0 6px;" onfocus="lastFocusedLocInput = this.id">
-                        <button type="button" id="btnLocStart" onclick="toggleLocLock('locStart', 'btnLocStart')" style="background:#bdc3c7; border:none; border-radius: 0 6px 6px 0; cursor:pointer; width:45px; font-size:18px;" title="Отключи за ръчна корекция">🔒</button>
-                    </div>
-                </div>
-                
-                <div class="form-group autocomplete-wrapper" id="defaultWaypointWrapper">
-                    <label style="font-size:11px; color:var(--primary-dark); font-weight:bold; margin-bottom:2px;">Дестинация (Посетен обект)</label>
-                    <input type="text" id="wp_1" placeholder="Въведете къде отивате..." style="border: 2px solid var(--primary);" onfocus="lastFocusedLocInput = this.id">
-                </div>
-                
-                <div id="waypointsContainer"></div>
-                <button class="btn-sec" style="margin-bottom:10px; background:#34495e;" id="btnAddWp" onclick="addWaypoint()">+ Добави още една спирка</button>
-                
-                <div class="form-group autocomplete-wrapper">
-                    <label style="font-size:11px; color:#7f8c8d; margin-bottom:2px;">Крайна точка (Връщане)</label>
-                    <div style="display:flex;">
-                        <input type="text" id="locEnd" readonly style="background:#f4f6f7; color:#7f8c8d; font-size: 13px; border-radius: 6px 0 0 6px;" onfocus="lastFocusedLocInput = this.id">
-                        <button type="button" id="btnLocEnd" onclick="toggleLocLock('locEnd', 'btnLocEnd')" style="background:#bdc3c7; border:none; border-radius: 0 6px 6px 0; cursor:pointer; width:45px; font-size:18px;" title="Отключи за ръчна корекция">🔒</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row" style="background:#e8f4f8; padding:15px; border-radius:6px; margin-bottom:15px; border: 1px solid #bce0ed;">
-                <div class="form-group">
-                    <label>Начален КМ</label>
-                    <div style="display:flex;">
-                        <input type="number" id="tripKmStart" readonly style="font-weight:bold; border-radius: 6px 0 0 6px;">
-                        <button id="kmLockBtn" onclick="toggleKMLock()" style="background:#bdc3c7; border:none; border-radius: 0 6px 6px 0; cursor:pointer; width:45px; font-size:18px;" title="Отключи за ръчна корекция">🔒</button>
-                    </div>
-                    <div id="kmSourceText" style="font-size:10px; color:#7f8c8d; margin-top:3px;">--</div>
-                </div>
-                <div class="form-group">
-                    <label style="color:var(--danger);">Краен КМ</label>
-                    <div id="suggestionBox" class="suggestion-box" style="display:none;" onclick="applySuggestion()"></div>
-                    <input type="number" id="tripKmEnd" oninput="calcTotalKM()">
-                </div>
-                <div class="form-group">
-                    <label>Изминати КМ</label>
-                    <input type="number" id="tripKmTotal" readonly style="background:#fff; font-weight:bold; color:var(--success-dark);">
-                </div>
-            </div>
-
-            <div class="form-group" id="sigWrapTrip">
-                <label>Електронен подпис на водача (Задължително)</label>
-                <div class="signature-wrapper">
-                    <canvas id="sigCanvasTrip"></canvas>
-                    <button class="btn-clear-sig" onclick="clearSignature('trip')">Изчисти</button>
-                </div>
-            </div>
-
-            <button class="btn-main" onclick="generateTripLog()">ГЕНЕРИРАЙ И ПРЕГЛЕДАЙ ПЪТЕН ЛИСТ ➔</button>
-        </div>
-    </section>
-
-    <!-- АРХИВ / ПЕЧАТ -->
-    <section id="tab-archive" class="tab-content">
-        <div class="card">
-            <h3>Архив Документи</h3>
-            
-            <div class="archive-switcher">
-                <button class="archive-btn active" id="btnArchTrip" onclick="switchArchiveView('trip')">🚗 АРХИВ ПЪТНИ ЛИСТОВЕ</button>
-                <button class="archive-btn" id="btnArchOrder" onclick="switchArchiveView('order')">📝 АРХИВ ЗАПОВЕДИ</button>
-            </div>
-
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button class="btn-sec" onclick="initSystem()">🔄 Опресни Базата</button>
-                <button class="btn-main" style="margin:0; height:32px; font-size:12px; padding:0 15px; width:auto;" onclick="printSelectedArchive()">🖨️ ПРИНТИРАЙ ИЗБРАНИТЕ</button>
-            </div>
-            
-            <div id="archiveError" style="color:var(--danger); font-size:13px; font-weight:bold; display:none; margin-bottom:10px;"></div>
-            
-            <!-- Таблица за Пътни Листове -->
-            <div class="archive-table-container" id="archiveContainerTrip">
-                <table class="archive-table" style="width:100%; white-space:nowrap;">
-                    <thead><tr>
-                        <th style="width:30px;"><input type="checkbox" class="chk-box" onclick="toggleAllArchive(this, 'trip')"></th>
-                        <th>ID Документ</th><th>Дата</th><th>Водач</th><th>Автомобил</th><th>Маршрут</th><th>Изминати КМ</th><th>Действие</th>
-                    </tr></thead>
-                    <tbody id="logsTable"></tbody>
-                </table>
-            </div>
-
-            <!-- Таблица за Заповеди -->
-            <div class="archive-table-container" id="archiveContainerOrder" style="display:none;">
-                <table class="archive-table" style="width:100%; white-space:nowrap;">
-                    <thead><tr>
-                        <th style="width:30px;"><input type="checkbox" class="chk-box" onclick="toggleAllArchive(this, 'order')"></th>
-                        <th>№ Заповед</th><th>Дата</th><th>Служител</th><th>Дестинация</th><th>Действие</th>
-                    </tr></thead>
-                    <tbody id="ordersArchiveTable"></tbody>
-                </table>
+        <div id="wizard-step2" style="display: none;">
+            <div class="card">
+                <h3>📅 Стъпка 2: Месеци и Документ</h3>
+                <div class="row"><div class="form-group"><label>Тип документ</label><select id="documentType"><option value="protocol" selected>ПРОТОКОЛ</option><option value="notice">УВЕДОМЛЕНИЕ</option></select></div><div class="form-group"><label>Изготвил</label><select id="issuerSelect"></select></div></div>
+                <div class="form-group"><label>Дата на издаване (Днес)</label><input type="date" id="protocolDate"></div>
+                <div class="row"><div class="form-group"><label>От Месец</label><input type="month" id="billingStartMonth"></div><div class="form-group"><label>До Месец</label><input type="month" id="billingEndMonth"></div></div>
+                <div class="form-group" id="markupDiv"><label>Надценка / Такси (€/kWh)</label><input type="number" step="0.001" id="marginPrice" value="0.076"></div>
+                <div id="step2Error" class="error-msg" style="display:none;"></div>
+                <button type="button" class="btn-green" onclick="generateDocument()">ГЕНЕРИРАЙ ДОКУМЕНТ ✓</button>
+                <button type="button" class="btn-cancel" onclick="goToStep1()" style="margin-top: 10px;">ОТКАЗ / НАЗАД</button>
             </div>
         </div>
     </section>
 
-    <!-- ПРЕГЛЕД / ПЕЧАТ -->
-    <section id="tab-print" class="tab-content">
-        <div class="print-btn-group" style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn-main" style="margin:0; flex:1; min-width:200px; background:#34495e;" onclick="window.print()">🖨️ ПРИНТИРАЙ</button>
-            <button class="btn-main" id="btnSaveGoogle" style="margin:0; flex:1; min-width:200px; background:#27ae60; box-shadow: 0 4px 12px rgba(39,174,96,0.6); border: 1px solid #219a52;" onclick="saveToGoogleSheets()">👩‍💼📄 ЗАПАЗИ В БАЗАТА</button>
+    <section id="section-objects" class="tab-content">
+        <div class="card">
+            <h3>Ревизия на обекти</h3>
+            <button type="button" class="btn-green" style="margin-bottom: 15px;" onclick="openObjectEditor('')">+ ДОБАВИ НОВ ОБЕКТ</button>
+            <div id="objectEditor">
+                <h3 id="editorTitle">Обект</h3><input type="hidden" id="editOriginalName">
+                <div class="form-group"><label>Име на Обекта (Кратко)</label><input type="text" id="editName" placeholder="Напр. Офис 1"></div>
+                <div class="row"><div class="form-group"><label>Наемодател</label><select id="editProvider"></select></div><div class="form-group"><label>Клиент / Ползвател</label><input type="text" id="editClient"></div></div>
+                <div class="form-group"><label>Адрес (Обект)</label><input type="text" id="editAddress"></div>
+                
+                <div style="background: rgba(230,126,34,0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #e67e22;">
+                    <strong>⚡ Електромер:</strong>
+                    <div class="row" style="margin-top:10px;"><div class="form-group"><label>Захранващ обект (Ток)</label><input type="text" id="editSourceTok" placeholder="Напр. ТП3"></div></div>
+                    <div class="row"><div class="form-group"><label>Тарифи</label><select id="editTariffsTok" onchange="toggleMeterFields('Tok')"><option value="1">Една (Т)</option><option value="2">Две (Т1, Т2)</option><option value="Няма наличен">Няма наличен</option></select></div><div class="form-group"><label>Модел и №</label><input type="text" id="editMeterTok"></div></div>
+                </div>
+                <div style="background: rgba(41,128,185,0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2980b9;">
+                    <strong>💧 Водомер:</strong>
+                    <div class="row" style="margin-top:10px;"><div class="form-group"><label>Захранващ обект (Вода)</label><input type="text" id="editSourceVoda" placeholder="Напр. Водомерен възел 1"></div></div>
+                    <div class="row"><div class="form-group"><label>Тарифи</label><select id="editTariffsVoda" onchange="toggleMeterFields('Voda')"><option value="1">Една (Само Доставка)</option><option value="2">Две (Доставка + Отвеждане)</option><option value="Няма наличен">Няма наличен</option></select></div><div class="form-group"><label>Модел и №</label><input type="text" id="editMeterVoda"></div></div>
+                </div>
+                <div class="row"><button type="button" id="btnSaveObj" class="btn-green" onclick="saveObject()">ЗАПАЗИ ОБЕКТ</button><button type="button" class="btn-cancel" onclick="closeObjectEditor()">ОТКАЗ</button></div>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table"><thead><tr><th>Обект / Клиент</th><th>Уреди</th><th>Действие</th></tr></thead><tbody id="objectsTableBody"></tbody></table>
+            </div>
         </div>
-        <div class="print-doc" id="printPreview"></div>
+
+        <div class="card">
+            <h3>🏢 Фирми Наемодатели</h3>
+            <button type="button" class="btn-green" style="margin-bottom: 15px;" onclick="openCompanyEditor('')">+ ДОБАВИ НОВА ФИРМА</button>
+            <div id="companyEditor">
+                <h3 id="compEditorTitle">Добавяне на фирма</h3>
+                <div class="form-group"><label>Име на Фирмата</label><input type="text" id="compName"></div>
+                <div class="row"><div class="form-group"><label>ЕИК</label><input type="text" id="compEik"></div><div class="form-group"><label>ДДС Номер</label><input type="text" id="compVat"></div></div>
+                <div class="form-group"><label>Официален Адрес</label><input type="text" id="compAddress"></div>
+                <div class="row"><button type="button" id="btnSaveComp" class="btn-green" onclick="saveCompany()">ЗАПАЗИ</button><button type="button" class="btn-cancel" onclick="closeCompanyEditor()">ОТКАЗ</button></div>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table"><thead><tr><th>Фирма Наемодател</th><th>ЕИК / ДДС / Адрес</th><th style="width:80px;"></th></tr></thead><tbody id="companiesTableBody"></tbody></table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Изготвили лица</h3>
+            <div class="row" style="margin-bottom: 15px;">
+                <div class="form-group" style="flex: 2; margin:0;"><input type="text" id="newIssuerName" placeholder="Име и Фамилия"></div>
+                <button type="button" id="btnSaveIss" class="btn-green" style="flex: 1; margin:0; height: 50px;" onclick="addIssuer()">+ ДОБАВИ</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table"><thead><tr><th>Име на служител</th><th style="width:80px;"></th></tr></thead><tbody id="issuersTableBody"></tbody></table>
+            </div>
+        </div>
+    </section>
+
+    <section id="section-preview" class="tab-content">
+        <div id="validationErrorDoc" class="error-msg">⚠️ ЛИПСВАТ ДАННИ! Върнете се в Таб "ДАННИ".</div>
+        <div id="quickInvoiceEntry" style="display:none; background:#f8f9fa; padding:15px; border-radius:8px; border-left:4px solid var(--primary); margin-bottom:15px;">
+            <strong style="color: var(--primary-dark);">Въвеждане на фактура (Опция)</strong>
+            <div class="row" style="margin-top:10px;">
+                <div class="form-group" style="margin:0;"><input type="text" id="quickInvNum" placeholder="Номер фактура"></div>
+                <div class="form-group" style="margin:0;"><input type="date" id="quickInvDate"></div>
+            </div>
+        </div>
+        <div class="print-btn-group" id="actionButtons" style="display: none; gap: 10px; margin-bottom: 20px;"><button type="button" class="btn-green" onclick="window.print()" style="margin: 0; flex: 1;">🖨️ ПРИНТИРАЙ</button><button type="button" id="btnSaveArchiveTop" style="background:#34495e; color: #fff; margin: 0; flex: 1;" onclick="saveToArchive()">💾 ЗАПАЗИ В АРХИВ</button></div>
+        
+        <div class="preview-doc" id="previewContainer"></div>
+    </section>
+
+    <section id="section-archive" class="tab-content">
+        <div class="card">
+            <h3>Архив Протоколи и Фактури</h3>
+            <div class="type-selector" style="margin-bottom: 15px;">
+                <button type="button" id="btnFiltTok" class="sel-tok active" onclick="filterArchive('tok')">⚡ АРХИВ ТОК</button>
+                <button type="button" id="btnFiltVoda" class="sel-voda" onclick="filterArchive('voda')">💧 АРХИВ ВОДА</button>
+            </div>
+            <div id="archiveEditor">
+                <h3 style="color: var(--warning-dark);">Въвеждане на фактура</h3><input type="hidden" id="archEditId">
+                <div class="row"><div class="form-group"><label>Номер на Фактура</label><input type="text" id="archEditInvNum"></div><div class="form-group"><label>Дата на Фактура</label><input type="date" id="archEditInvDate"></div></div>
+                <div class="row"><button type="button" id="btnSaveArchEdit" class="btn-green" onclick="saveArchiveRecord()">ЗАПАЗИ</button><button type="button" class="btn-cancel" onclick="closeArchiveEditor()">ОТКАЗ</button></div>
+            </div>
+            <div class="table-wrapper table-wrapper-large">
+                <table class="archive-table"><thead><tr><th>Създаден / Тип</th><th>Клиент</th><th>Период / Отчет</th><th>Стойност</th><th>Фактура</th><th></th></tr></thead><tbody id="archiveTableBody"></tbody></table>
+            </div>
+        </div>
     </section>
 </main>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz5sjJj2TCIDsnYyB2kzy2WltwLE1eAL5jKAG62EB4GKYRRpTjlQd3vSvYWIGcG6EDa/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyFXlf0rkAv555IBthdfMAWX_oMbEPa8vNxgToyjdNa48FXzD96LeghI0nXUZ23JXB4Vw/exec"; 
 
-    // --- СЦЕНАРИИ ЗА ЗАПОВЕД ---
-    const orderScenarios = {
-        "scenario_1": { task: "Оглед на строителната площадка и анализ на алтернативни проектни решения.", report: "Извършен е първоначален оглед на терена. Проведени са консултации на място за избор на оптимални проектни и технологични решения. Съставен е констативен протокол." },
-        "scenario_2": { task: "Провеждане на срещи с потенциални изпълнители и договаряне на технически и финансови условия.", report: "Проведени са преговори с кандидат-изпълнители на обекта. Разгледани са представените технически оферти на място. Изготвено е становище за избор на Главен изпълнител." },
-        "scenario_3": { task: "Упражняване на инвеститорски контрол върху дейността на Главния изпълнител.", report: "Извършена е проверка на качеството и напредъка на изпълнените строително-монтажни работи (СМР). Подписани са актове за скрити работи и е направен контрол на вложените материали." },
-        "scenario_4": { task: "Провеждане на оперативка на обекта с Главния изпълнител и подизпълнителите.", report: "Проведена е координационна среща на обекта. Обсъден е графикът за изпълнение на СМР, набелязани са мерки за преодоляване на констатирани забавяния и логистични проблеми." },
-        "scenario_5": { task: "Участие в комисия за приемане на завършени етапи от строителството / СМР.", report: "Извършен е обстоен оглед на завършените етапи от строителството. Приети са изпълнените СМР. Разписан е съответният двустранен Акт/Протокол за приемане на работата." }
-    };
-
-    // --- ФИРМЕНИ ДАННИ ---
-    const companiesInfo = {
-        "LIM": {
-            name: "ЛИНДНЕР ИМОБИЛИЕН МЕНИДЖМЪНТ ЕООД",
-            address: "с. Лозен, жк. Лозен Тех Парк, ул. Лозен Парк №2, сгр. 1",
-            eik: "131575345",
-            manager: "Георги Ранчев"
-        },
-        "KLP": {
-            name: "КАМПУС ЛОЗЕН ПАРК ЕООД",
-            address: "с. Лозен, жк. Лозен Тех Парк, ул. Лозен Парк №2, сгр. 1",
-            eik: "207364738",
-            manager: "Георги Ранчев"
-        },
-        "LBG": {
-            name: "ЛИНДНЕР БЪЛГАРИЯ ЕООД",
-            address: "с. Лозен, ул. Лозен парк 2, Лозен Тех Парк, сгр. 2",
-            eik: "121586343",
-            manager: "Георги Ранчев"
-        }
-    };
-
-    async function callGoogleAPI(actionName, payload, retries = 2) {
-        payload.action = actionName;
-        for (let i = 0; i <= retries; i++) {
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-                return await response.json();
-            } catch (error) {
-                console.error(`API Грешка (Опит ${i + 1}):`, error);
-                if (i === retries) {
-                    return { success: false, message: "Временна грешка в мрежата при свързване със сървъра. Опитайте отново." };
-                }
-                await new Promise(res => setTimeout(res, 1000));
-            }
-        }
-    }
-
-    let currentUser = localStorage.getItem('travel_user') || "";
-    let isAdmin = false;
-    let localCars = [];
-    let localOrders = [];
-    let currentPendingLog = null; 
-    let currentDocType = null; 
-    let allLogs = [];
-    let localUsers = []; 
-    let calculatedMapDistance = 0; 
-    let wpCount = 1; 
-    let lastFocusedLocInput = 'wp_1'; 
-    let activeArchive = 'trip'; 
-    
-    const defaultStartLoc = "Лозен тех парк, ж.к. Лозен парк, Лозен, Панчарево, Столична, София-град, България";
-    let cachedDefLat = "", cachedDefLon = "";
+    let pricesDB = {}, objectsDB = {}, issuersDB = [], archiveDB = [], companiesDB = {};
+    let currentUser = localStorage.getItem('rpl_user') || "";
+    let currentWorkingType = 'tok'; 
+    let currentProtocolData = {}; 
+    let isWizardValid = false;
+    let archiveFilter = 'tok';
 
     window.onload = function() {
-        if(currentUser) {
-            isAdmin = (currentUser.toLowerCase() === 'admin');
-            applyUIPermissions();
+        setInterval(() => { const now = new Date(); document.getElementById('clockInfo').innerHTML = `${now.toLocaleDateString('bg-BG')} ${now.toLocaleTimeString('bg-BG')} ч.`; }, 1000);
+        document.getElementById('protocolDate').value = new Date().toISOString().split('T')[0];
+        
+        if (currentUser) {
             document.getElementById('authOverlay').style.display = 'none';
-            initSystem();
-            initTripCanvas();
+            fetchDataSilently();
+        } else {
+            document.getElementById('authOverlay').style.display = 'flex';
         }
-        setInterval(() => {
-            const d = new Date();
-            document.getElementById('clock').innerText = d.toLocaleDateString('bg-BG') + ' ' + d.toLocaleTimeString('bg-BG');
-        }, 1000);
     };
 
-    function applyUIPermissions() {
-        if(isAdmin) {
-            document.getElementById('roleBadge').style.display = 'inline';
-            document.getElementById('addCarForm').style.display = 'block';
-        } else {
-            document.getElementById('addCarForm').style.display = 'none';
-        }
-    }
-
-    // --- ЛОГИКА ЗА CANVAS ПОДПИСИТЕ ---
-    let tripCtx, orderCtx, tripCanvasEl, orderCanvasEl;
-    let tripDrawing = false, orderDrawing = false;
-
-    function initTripCanvas() {
-        if(!tripCanvasEl) {
-            tripCanvasEl = document.getElementById('sigCanvasTrip');
-            if(tripCanvasEl) {
-                tripCtx = tripCanvasEl.getContext('2d');
-                tripCanvasEl.width = tripCanvasEl.parentElement.offsetWidth - 4;
-                attachCanvasEvents(tripCanvasEl, tripCtx, (val) => tripDrawing = val, () => tripDrawing);
-            }
-        }
-    }
-
-    function initOrderCanvas() {
-        if(!orderCanvasEl) {
-            orderCanvasEl = document.getElementById('sigCanvasOrder');
-            if(orderCanvasEl) {
-                orderCtx = orderCanvasEl.getContext('2d');
-                orderCanvasEl.width = orderCanvasEl.parentElement.offsetWidth - 4;
-                attachCanvasEvents(orderCanvasEl, orderCtx, (val) => orderDrawing = val, () => orderDrawing);
-            }
-        }
-    }
-
-    function attachCanvasEvents(canvas, ctx, setDrawFlag, getDrawFlag) {
-        const draw = (e) => {
-            if(!getDrawFlag()) return;
-            e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            let x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
-            let y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
-            ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
-            ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y);
-        };
-        canvas.addEventListener('mousedown', (e)=>{ setDrawFlag(true); draw(e); }); 
-        canvas.addEventListener('mouseup', ()=>{ setDrawFlag(false); ctx.beginPath(); }); 
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('touchstart', (e)=>{ setDrawFlag(true); draw(e); }, {passive: false}); 
-        canvas.addEventListener('touchend', ()=>{ setDrawFlag(false); ctx.beginPath(); }, {passive: false}); 
-        canvas.addEventListener('touchmove', draw, {passive: false});
-    }
-
-    function clearSignature(type) {
-        if(type === 'trip' && tripCtx) tripCtx.clearRect(0,0, tripCanvasEl.width, tripCanvasEl.height);
-        if(type === 'order' && orderCtx) orderCtx.clearRect(0,0, orderCanvasEl.width, orderCanvasEl.height);
-    }
-
-    function isCanvasBlank(canvasEl) {
-        if(!canvasEl) return true;
-        const blank = document.createElement('canvas'); 
-        blank.width = canvasEl.width; blank.height = canvasEl.height;
-        return canvasEl.toDataURL() === blank.toDataURL();
-    }
-
-    // --- ОБЩИ ФУНКЦИИ ---
-    async function login() {
-        const u = document.getElementById('loginUser').value.trim();
-        const p = document.getElementById('loginPass').value.trim();
-        const errDiv = document.getElementById('loginError');
-        const loginBtn = document.querySelector('.auth-box button');
-        
-        if(!u || !p) { errDiv.innerText = "Въведете потребител и парола!"; errDiv.style.display = 'block'; return; }
-        
-        loginBtn.disabled = true; loginBtn.innerText = "ОБРАБОТКА..."; loginBtn.style.opacity = "0.7";
-        showLoader("Свързване със сървъра..."); errDiv.style.display = 'none';
-        
-        const result = await callGoogleAPI("login", { user: u, pass: p });
-        
-        loginBtn.disabled = false; loginBtn.innerText = "ВХОД"; loginBtn.style.opacity = "1";
-        hideLoader();
-        
-        if(result.success) {
-            currentUser = u; isAdmin = (currentUser.toLowerCase() === 'admin');
-            localStorage.setItem('travel_user', u);
-            applyUIPermissions(); document.getElementById('authOverlay').style.display = 'none';
-            initSystem(result.data); initTripCanvas();
-        } else {
-            errDiv.innerText = result.message; errDiv.style.display = 'block';
-        }
-    }
-
-    function logout() { localStorage.removeItem('travel_user'); location.reload(); }
-    function showLoader(text) { document.getElementById('loaderText').innerText = text; document.getElementById('loaderOverlay').style.display = 'flex'; }
-    function hideLoader() { document.getElementById('loaderOverlay').style.display = 'none'; }
-    function getUserFullName(username) {
-        if (!username) return "";
-        let match = localUsers.find(u => u.username.toLowerCase() === username.toLowerCase());
-        return (match && match.name) ? match.name : username;
-    }
-
-    async function initSystem(preloadedData = null) {
-        const d = new Date();
-        const dStr = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-        document.getElementById('tripDate').value = dStr;
-        document.getElementById('orderDateStart').value = dStr;
-        applyDefaultStartLoc();
-        
-        let dbData = preloadedData;
-        if (!preloadedData) {
-            showLoader("Изтегляне на базата данни...");
-            const result = await callGoogleAPI("getData", {});
+    function attemptLogin() {
+        const code = document.getElementById('authInput').value.trim();
+        if(!code) return;
+        showLoader("Проверка...");
+        callAPI('getInitialData', { author: code }).then(res => {
             hideLoader();
-            if(!result.success) { alert("Грешка при зареждане: " + result.message); return; }
-            dbData = result.data;
-        }
-        
-        if(dbData) {
-            const isHeader = (row) => row[0] && (row[0].includes("Рег") || row[0].includes("Заповед") || row[0].includes("ID") || row[0].includes("Потребител"));
-            
-            let rawCars = dbData.cars || [];
-            if(rawCars.length > 0 && isHeader(rawCars[0])) rawCars.shift();
-            localCars = rawCars.map(c => ({ reg: c[0], model: c[1], fuel: c[2], norm: c[3], km: c[4], owner: c[5] || "" }));
-            
-            let rawOrders = dbData.orders || [];
-            if(rawOrders.length > 0 && isHeader(rawOrders[0])) rawOrders.shift();
-            localOrders = rawOrders; 
-            
-            let rawUsers = dbData.users || [];
-            if(rawUsers.length > 0 && isHeader(rawUsers[0])) rawUsers.shift();
-            localUsers = rawUsers.map(u => ({ username: u[0] || "", name: u[3] || "" }));
-            
-            allLogs = dbData.logs || [];
-            if(allLogs.length > 0 && isHeader(allLogs[0])) allLogs.shift();
-
-            document.getElementById('currentUser').innerText = "Потребител: " + getUserFullName(currentUser);
-
-            renderCars(); 
-            renderOrdersArchive(); 
-            populateTripSelects();
-            renderLogsArchive(allLogs);
-            extractQuickDestinations();
-            autoFetchLastKM();
-            checkRulesAgreement();
-        }
-        setupOSMAutocomplete(document.getElementById('locStart'));
-        setupOSMAutocomplete(document.getElementById('wp_1')); 
-        setupOSMAutocomplete(document.getElementById('locEnd'));
-        setupOSMAutocomplete(document.getElementById('orderDest')); 
-    }
-
-    function openTab(tabId, btn, callback = null) {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        window.scrollTo(0,0);
-        if(callback) callback(); 
-    }
-
-    function switchArchiveView(type) {
-        activeArchive = type;
-        document.getElementById('btnArchTrip').classList.remove('active');
-        document.getElementById('btnArchOrder').classList.remove('active');
-        
-        if(type === 'trip') {
-            document.getElementById('btnArchTrip').classList.add('active');
-            document.getElementById('archiveContainerTrip').style.display = 'block';
-            document.getElementById('archiveContainerOrder').style.display = 'none';
-        } else {
-            document.getElementById('btnArchOrder').classList.add('active');
-            document.getElementById('archiveContainerTrip').style.display = 'none';
-            document.getElementById('archiveContainerOrder').style.display = 'block';
-        }
-    }
-
-    // --- ПРАВИЛА И ДЕКЛАРАЦИЯ ЗА МПС ---
-    function checkRulesAgreement() {
-        const agreedDate = localStorage.getItem('agreed_rules_date_' + currentUser);
-        if (agreedDate) {
-            document.getElementById('agreementSection').style.display = 'none';
-            document.getElementById('agreedStatus').style.display = 'block';
-            document.getElementById('agreedStatus').innerHTML = `✅ Вие сте приели правилата за ползване на МПС на ${agreedDate}`;
-        } else {
-            document.getElementById('agreementSection').style.display = 'block';
-            document.getElementById('agreedStatus').style.display = 'none';
-            document.getElementById('chkAgreeRules').checked = false;
-        }
-    }
-
-    async function agreeToRules() {
-        const chk = document.getElementById('chkAgreeRules');
-        if (!chk.checked) {
-            alert("⚠️ Моля, маркирайте отметката, че сте запознати с правилата, преди да потвърдите!");
-            return;
-        }
-        
-        const d = new Date().toLocaleString('bg-BG');
-        localStorage.setItem('agreed_rules_date_' + currentUser, d);
-        
-        checkRulesAgreement();
-        
-        callGoogleAPI("save", { 
-            sheetName: "Пътни_Листове_База_Логове_Система", 
-            dataArray: [d, currentUser, `ДЕКЛАРАЦИЯ МПС`, `Служителят прочете и прие правилата (AW-FN-004)`] 
-        });
-    }
-
-    // --- РЕНДЕРИРАНЕ НА ДАННИ В АРХИВА ---
-    function renderCars() {
-        let html = '';
-        localCars.forEach(c => { html += `<tr><td><strong>${c.reg}</strong></td><td>${c.model}</td><td>${c.owner}</td><td>${c.fuel}</td><td>${c.norm}</td><td>${c.km}</td></tr>`; });
-        document.getElementById('carsTable').innerHTML = html;
-    }
-    
-    function renderOrdersArchive() {
-        let html = '';
-        let displayOrders = isAdmin ? localOrders : localOrders.filter(o => o[2] && o[2].toLowerCase() === currentUser.toLowerCase());
-        displayOrders.slice().reverse().forEach((o, index) => {
-            if(o[0]) {
-                let num = o[0], date = o[1], emp = o[2], dest = o[3] || "Неопределена";
-                let isOwner = emp && emp.toLowerCase() === currentUser.toLowerCase();
-                
-                let canDelete = isAdmin; 
-                if (!isAdmin && isOwner) {
-                    const prefix = num.split('-')[0];
-                    const seq = parseInt(num.split('-')[1]);
-                    let hasNewer = localOrders.some(other => {
-                        let otherNum = String(other[0]);
-                        return otherNum.startsWith(prefix + "-") && parseInt(otherNum.split('-')[1]) > seq;
-                    });
-                    if (!hasNewer) canDelete = true;
-                }
-                
-                let oJson = JSON.stringify(o).replace(/'/g, "&#39;");
-
-                let editBtn = isAdmin ? `<button class="btn-sec" style="background:#f39c12; padding:4px 8px; margin-right:5px; border:none;" onclick="editOrder('${oJson}'); event.stopPropagation();" title="Коригирай Номер/Дата">✏️</button>` : '';
-                
-                let delBtn = canDelete 
-                    ? `<button class="btn-del" onclick="deleteRecord('Пътни_Листове_База_Заповеди', '${num}'); event.stopPropagation();" title="Изтрий">🗑️</button>` 
-                    : `<span style="font-size:16px; cursor:not-allowed;" title="Не може да се изтрие (има издадена по-нова заповед)">🔒</span>`;
-                
-                html += `<tr onclick="toggleRowCheckbox('chk_ord_${index}')">
-                    <td onclick="event.stopPropagation()"><input type="checkbox" class="chk-box arc-ord-checkbox" id="chk_ord_${index}" value='${oJson}'></td>
-                    <td><strong>${num}</strong></td><td>${date}</td><td>${emp}</td><td>${dest}</td>
-                    <td onclick="event.stopPropagation()"><div style="display:flex; align-items:center;">${editBtn}${delBtn}</div></td>
-                </tr>`;
-            }
-        });
-        document.getElementById('ordersArchiveTable').innerHTML = html;
-    }
-
-    function renderLogsArchive(logsArray) {
-        let html = '';
-        let displayLogs = isAdmin ? logsArray : logsArray.filter(l => l[2] && l[2].toLowerCase() === currentUser.toLowerCase());
-        displayLogs.slice().reverse().forEach((log, index) => {
-            if(log[0]) {
-                let dStr = log[1];
-                let isOwner = log[2] && log[2].toLowerCase() === currentUser.toLowerCase();
-                
-                let canDelete = isAdmin; 
-                if (!isAdmin && isOwner) {
-                    let carReg = log[3];
-                    let carLogs = allLogs.filter(l => l[3] === carReg);
-                    let isLastForCar = carLogs.length > 0 && carLogs[carLogs.length - 1][0] === log[0];
-                    if (isLastForCar) canDelete = true;
-                }
-                
-                let delBtn = canDelete 
-                    ? `<button class="btn-del" onclick="deleteRecord('Пътни_Листове_База_Пътни_Листове', '${log[0]}'); event.stopPropagation();" title="Изтрий">🗑️</button>` 
-                    : `<span style="font-size:16px; cursor:not-allowed;" title="Не може да се изтрие (има по-нов пътен лист за този автомобил)">🔒</span>`;
-                
-                let logJson = JSON.stringify(log).replace(/'/g, "&#39;");
-                html += `<tr onclick="toggleRowCheckbox('chk_log_${index}')">
-                    <td onclick="event.stopPropagation()"><input type="checkbox" class="chk-box arc-trip-checkbox" id="chk_log_${index}" value='${logJson}'></td>
-                    <td><strong>${log[0]}</strong></td><td>${dStr}</td><td>${log[2]}</td><td>${log[3]}</td><td>${log[6]}</td><td style="color:var(--success-dark); font-weight:bold;">${log[9]} км</td>
-                    <td onclick="event.stopPropagation()">${delBtn}</td>
-                </tr>`;
-            }
-        });
-        document.getElementById('logsTable').innerHTML = html;
-    }
-
-    function populateTripSelects() {
-        const sOrd = document.getElementById('tripOrder'); 
-        sOrd.innerHTML = '<option value="0">-- Локално пътуване (Без Заповед) --</option>';
-        let displayOrders = isAdmin ? localOrders : localOrders.filter(o => o[2] && o[2].toLowerCase() === currentUser.toLowerCase());
-        
-        displayOrders.forEach(o => sOrd.appendChild(new Option(`Заповед № ${o[0]} (${o[2]})`, o[0])));
-
-        const sCar = document.getElementById('tripCar'); 
-        sCar.innerHTML = '<option value="" disabled selected>-- Избери кола --</option>';
-        localCars.forEach(c => sCar.appendChild(new Option(`${c.reg} (${c.model})`, c.reg)));
-        
-        let userLogs = allLogs.filter(l => l[2] && l[2].toLowerCase() === currentUser.toLowerCase());
-        if(userLogs.length > 0) {
-            let lastCar = userLogs[userLogs.length-1][3];
-            if (lastCar && Array.from(sCar.options).some(o => o.value === lastCar)) sCar.value = lastCar;
-        }
-    }
-
-    // --- ЛОГИКА ЗА СЪЗДАВАНЕ НА ЗАПОВЕД ---
-    function applyOrderPreset() {
-        const v = document.getElementById('taskPresetSelector').value;
-        const customDiv = document.getElementById('customOrderFields');
-        const purpose = document.getElementById('orderPurpose');
-        const report = document.getElementById('orderReport');
-
-        if(v === 'custom') {
-            customDiv.style.display = 'block';
-            purpose.value = ''; report.value = '';
-        } else if(orderScenarios[v]) {
-            customDiv.style.display = 'block'; 
-            purpose.value = orderScenarios[v].task;
-            report.value = orderScenarios[v].report;
-        }
-    }
-
-    function generateOrderLog() {
-        const err = document.getElementById('orderFormError'); err.style.display = 'none';
-        
-        const dStart = document.getElementById('orderDateStart').value;
-        const tStart = document.getElementById('orderTimeStart').value;
-        const tEnd = document.getElementById('orderTimeEnd').value;
-        const dest = document.getElementById('orderDest').value.trim();
-        const preset = document.getElementById('taskPresetSelector').value;
-        const purp = document.getElementById('orderPurpose').value.trim();
-        const rep = document.getElementById('orderReport').value.trim();
-
-        const today = new Date();
-        const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-        const todayFormattedBG = todayStr.split('-').reverse().join('.'); 
-
-        if (dStart < todayStr) {
-            err.innerHTML = "⚠️ Не можете да издавате заповед за минала дата!";
-            err.style.display = 'block';
-            document.getElementById('orderDateStart').style.borderColor = "var(--danger)";
-            return;
-        }
-
-        if (dStart === todayStr) {
-            const orderExistsToday = localOrders.some(o => o[1] === todayFormattedBG);
-            const isTimeValid = tStart <= "08:30";
-
-            if (orderExistsToday || !isTimeValid) {
-                err.innerHTML = "⚠️ Системно ограничение: Заповед за днес е възможна само до 08:30 ч. и ако няма вече издадени заповеди за деня. Моля, изберете утрешна дата или се свържете с Администратор!";
-                err.style.display = 'block';
-                document.getElementById('orderDateStart').style.borderColor = "var(--danger)";
-                document.getElementById('orderTimeStart').style.borderColor = "var(--danger)";
-                return;
-            }
-        }
-        
-        document.getElementById('orderDateStart').style.borderColor = "var(--border-input)";
-        document.getElementById('orderTimeStart').style.borderColor = "var(--border-input)";
-
-        if(!dStart || !dest || !preset) {
-            err.innerHTML = "⚠️ Моля, въведете дата, дестинация и изберете дейност!"; err.style.display = 'block'; return;
-        }
-
-        if(preset === 'custom') {
-            let errorMsg = [];
-            if (!purp || purp.trim().length === 0) {
-                errorMsg.push("'Задача'");
-                document.getElementById('orderPurpose').style.borderColor = "var(--danger)";
+            if(res.status === 'error') {
+                document.getElementById('authError').innerText = res.message;
+                document.getElementById('authError').style.display = 'block';
             } else {
-                document.getElementById('orderPurpose').style.borderColor = "var(--border-input)";
+                currentUser = code;
+                localStorage.setItem('rpl_user', code);
+                document.getElementById('authOverlay').style.display = 'none';
+                processData(res);
             }
-            
-            if (!rep || rep.trim().length === 0) {
-                errorMsg.push("'Доклад'");
-                document.getElementById('orderReport').style.borderColor = "var(--danger)";
-            } else {
-                document.getElementById('orderReport').style.borderColor = "var(--border-input)";
-            }
-
-            if (errorMsg.length > 0) {
-                err.innerHTML = `⚠️ При ръчно въвеждане, моля попълнете полето: ${errorMsg.join(' и ')}!`; 
-                err.style.display = 'block'; 
-                return;
-            }
-        } else {
-            document.getElementById('orderPurpose').style.borderColor = "var(--border-input)";
-            document.getElementById('orderReport').style.borderColor = "var(--border-input)";
-        }
-
-        if(isCanvasBlank(orderCanvasEl)) {
-            err.innerHTML = "⚠️ Задължителен електронен подпис!"; err.style.display = 'block'; return;
-        }
-
-        const dParts = dStart.split('-'); // YYYY-MM-DD
-        const currentYear = dParts[0];
-        const docDateStr = dParts[2] + "." + dParts[1] + "." + dParts[0]; // DD.MM.YYYY
-        const sigBase64 = orderCanvasEl.toDataURL('image/webp', 0.5);
-        
-        const rawDriverName = getUserFullName(currentUser).trim();
-        let prefix = "LIM"; 
-        let cleanDriverName = rawDriverName;
-
-        if (rawDriverName.endsWith(" ЛИМ")) { prefix = "LIM"; cleanDriverName = rawDriverName.slice(0, -4).trim(); }
-        else if (rawDriverName.endsWith(" КЛП")) { prefix = "KLP"; cleanDriverName = rawDriverName.slice(0, -4).trim(); }
-        else if (rawDriverName.endsWith(" ЛБГ")) { prefix = "LBG"; cleanDriverName = rawDriverName.slice(0, -4).trim(); }
-
-        const company = companiesInfo[prefix];
-
-        let maxSeq = 0;
-        localOrders.forEach(o => {
-            const ordNum = String(o[0] || "");
-            const ordDate = String(o[1] || ""); 
-            if (ordNum.startsWith(prefix + "-") && ordDate.endsWith(currentYear)) {
-                const numPart = parseInt(ordNum.split('-')[1]);
-                if (!isNaN(numPart) && numPart > maxSeq) {
-                    maxSeq = numPart;
-                }
-            }
-        });
-        const orderNum = `${prefix}-${maxSeq + 1}`;
-
-        currentPendingLog = { 
-            type: 'order',
-            num: orderNum,
-            date: docDateStr,
-            user: currentUser,
-            dest: dest,
-            startDT: docDateStr + " (" + tStart + ")",
-            endDT: docDateStr + " (" + tEnd + ")",
-            purpose: purp,
-            report: rep,
-            signature: sigBase64,
-            driverFullName: cleanDriverName,
-            companyName: company.name,
-            companyAddress: company.address,
-            companyEik: company.eik,
-            companyManager: company.manager
-        };
-        currentDocType = 'order';
-
-        document.getElementById('printPreview').innerHTML = generateOrderHtmlForPrint(currentPendingLog);
-        document.getElementById('btnTabPrint').style.display = 'block';
-        document.getElementById('btnSaveGoogle').style.display = 'block';
-        openTab('tab-print', document.getElementById('btnTabPrint'));
+        }).catch(err => { hideLoader(); alert("Грешка при логин връзка: " + err.toString()); });
     }
 
-    function generateOrderHtmlForPrint(data) {
-        return `
-        <div class="order-print-wrapper">
-            <div class="company-header">
-                <div><strong>Издател:</strong> <em>${data.companyName}</em><br><strong>Адрес:</strong> <em>${data.companyAddress}</em></div>
-                <div style="text-align: right;"><strong>ЕИК:</strong> <em>${data.companyEik}</em><br><strong>Валута:</strong> <em>Евро (EUR)</em></div>
-            </div>
-            
-            <h1>З А П О В Е Д № <span>${data.num}</span></h1>
-            <div style="text-align:center; font-size:12px; font-weight:bold; margin-bottom:10px; color:#2d3748;">от дата: ${data.date} г.</div>
-            <div style="text-align:center; font-style:italic; font-size:11px; margin-bottom:15px; color:#4a5568;">На основание чл. 121 от Кодекса на труда и Наредбата за командировките в страната (НКС)</div>
-
-            <h2>I. Данни за командироването</h2>
-            <div class="data-group">
-                <div class="data-row"><div class="label">Служител (Трите имена):</div><div class="value">${data.driverFullName}</div></div>
-                <div class="data-row"><div class="label">Паспорт / ЛК №:</div><div class="value" style="border-bottom: none; color: #7f8c8d;">******** <em style="font-size: 10px;">(предоставен в отдел ЧР)</em></div></div>
-                <div class="data-row"><div class="label">Длъжност:</div><div class="value">Служител / Експерт</div></div>
-                <div class="data-row"><div class="label">До град / обект:</div><div class="value">${data.dest}</div></div>
-            </div>
-            <div class="data-group">
-                <div class="data-row"><div class="label">Време на пътуване:</div><div class="value">От: ${data.startDT} ч. &nbsp;|&nbsp; До: ${data.endDT} ч.</div></div>
-                <div class="data-row"><div class="label">Общо времетраене:</div><div class="fixed-field">1 ден, без нощувка</div></div>
-            </div>
-            <div class="data-group">
-                <div class="label">Със следната задача:</div>
-                <div class="text-block">${data.purpose}</div>
-            </div>
-
-            <h2>II. Финансови условия и транспорт</h2>
-            <div class="data-group">
-                <div class="data-row"><div class="label">Дневни пари:</div><div class="fixed-field">22.00 EUR на ден</div><div style="font-size:9px; color:#718096; margin-left:10px; font-style:italic;">* Вкл. всички съпътстващи разходи.</div></div>
-                <div class="data-row"><div class="label">Квартирни пари:</div><div class="fixed-field">0.00 EUR (Без нощувка)</div><div style="font-size:9px; color:#718096; margin-left:10px; font-style:italic;">* Пътуване в рамките на един работен ден.</div></div>
-                <div class="data-row"><div class="label">Транспорт (Гориво):</div><div class="fixed-field">Няма (Служебен автомобил)</div><div style="font-size:9px; color:#718096; margin-left:10px; font-style:italic;">* Плаща се директно с фирмена карта.</div></div>
-            </div>
-            <div style="font-size:9px; color:#718096; margin-bottom:5px;">* Забележка: Фактурите задължително съдържат ЕИК на компанията.</div>
-
-            <div style="display:flex; justify-content:flex-end; margin-top:5px;">
-                <div style="width:40%; text-align:center; font-size:11px;">
-                    <div style="color:#2c3e50; font-size: 11px; margin-bottom: 2px;"><strong>РЪКОВОДИТЕЛ (Управител):</strong></div>
-                    <div style="height: 35px; display: block;"></div>
-                    <div style="border-top: 1px solid #4a5568; width: 140px; margin: 2px auto 4px auto;"></div>
-                    <div style="font-size:11px; color:#2c3e50; font-weight:bold; margin-bottom: 2px;"><em>${data.companyManager}</em></div>
-                </div>
-            </div>
-
-            <h2>III. Доклад за извършената работа</h2>
-            <div class="text-block">${data.report}</div>
-
-            <div style="display:flex; justify-content:space-between; margin-top:5px; align-items:flex-end;">
-                <div style="text-align:left; font-size:11px; padding-bottom:15px;"><strong>Дата:</strong> <em>${data.date} г.</em></div>
-                <div style="text-align:center; font-size:11px; width:45%;">
-                     <div style="color:#2c3e50; font-size: 11px; margin-bottom: 2px;"><strong>Командировано лице:</strong></div>
-                     <img src="${data.signature}" style="max-height:55px; max-width:100%; object-fit:contain; display:block; margin: 0 auto;">
-                     <div style="border-top: 1px solid #4a5568; width: 140px; margin: 2px auto 4px auto;"></div>
-                     <div style="font-size:11px; color:#2c5282; font-weight:bold; margin-bottom: 2px;">${data.driverFullName}</div>
-                     <div style="font-size:9px; color:#718096;">Дигитално вписване (Потребител: ${data.user})</div>
-                </div>
-            </div>
-
-            <h2>IV. Финансов отчет и сметка (EUR)</h2>
-            <table>
-                <thead><tr><th>Вид разход</th><th>Описание на документа / Основание</th><th style="text-align:right;">Сума (EUR)</th></tr></thead>
-                <tbody>
-                    <tr><td>1. Дневни пари</td><td>Фиксирана дневна ставка</td><td style="text-align:right;">22.00 EUR</td></tr>
-                    <tr><td>2. Пътни (Гориво)</td><td>Платени с фирмена карта</td><td style="text-align:right;">0.00 EUR</td></tr>
-                    <tr><td>3. Квартирни</td><td>Не се полагат</td><td style="text-align:right;">0.00 EUR</td></tr>
-                    <tr style="font-weight:bold; background-color:#edf2f7;"><td colspan="2" style="text-align:right;">Всичко за изплащане на лицето:</td><td style="text-align:right; color:#2c5282;">22.00 EUR</td></tr>
-                </tbody>
-            </table>
-
-            <div style="display:flex; gap:15px; font-size:12px; margin-bottom:10px;">
-                <div style="flex:1;">Аванс: <span style="border-bottom:1px dotted #a0aec0;">0.00 EUR</span></div>
-                <div style="flex:1; font-weight:bold; color:#2c5282;">За доплащане: <span style="border-bottom:1px dotted #a0aec0;">22.00 EUR</span></div>
-                <div style="flex:1;">За връщане: <span style="border-bottom:1px dotted #a0aec0;">0.00 EUR</span></div>
-            </div>
-
-            <div style="display:flex; justify-content:space-between; margin-top:10px; align-items:flex-end;">
-                <div style="text-align:center; font-size:11px; width:45%;">
-                     <div style="color:#2c3e50; font-size: 11px; margin-bottom: 2px;"><strong>Командировано лице:</strong></div>
-                     <img src="${data.signature}" style="max-height:55px; max-width:100%; object-fit:contain; display:block; margin: 0 auto;">
-                     <div style="border-top: 1px solid #4a5568; width: 140px; margin: 2px auto 4px auto;"></div>
-                     <div style="font-size:11px; color:#2c5282; font-weight:bold; margin-bottom: 2px;">${data.driverFullName}</div>
-                     <div style="font-size:9px; color:#718096;">Дигитално вписване (Потребител: ${data.user})</div>
-                </div>
-                <div style="text-align:center; font-size:11px; width:45%;">
-                    <div style="color:#2c3e50; font-size: 11px; margin-bottom: 2px;"><strong>Утвърдил разхода:</strong></div>
-                    <div style="height: 55px; display: block;"></div>
-                    <div style="border-top: 1px solid #4a5568; width: 140px; margin: 2px auto 4px auto;"></div>
-                    <div style="font-size:11px; color:#2c3e50; font-weight:bold; margin-bottom: 2px;"><em>${data.companyManager} (Управител)</em></div>
-                </div>
-            </div>
-        </div>`;
+    function logout() {
+        localStorage.removeItem('rpl_user');
+        location.reload();
     }
 
-    // --- ЛОГИКА ЗА ПЪТЕН ЛИСТ ---
-    function checkCustomPurpose() { document.getElementById('tripPurposeCustom').style.display = (document.getElementById('tripPurpose').value === 'other') ? 'block' : 'none'; }
-    
-    async function autoFillFromOrder() {
-        const selectedOrderNum = document.getElementById('tripOrder').value;
-        if (selectedOrderNum === "0" || !selectedOrderNum) return;
-
-        const order = localOrders.find(o => o[0] === selectedOrderNum);
-        if (!order) return;
-
-        if (order[1]) {
-            const dParts = order[1].split('.');
-            if (dParts.length === 3) {
-                document.getElementById('tripDate').value = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
-            }
-        }
-
-        const pSelect = document.getElementById('tripPurpose');
-        const pCustom = document.getElementById('tripPurposeCustom');
-        pSelect.value = 'other';
-        pCustom.style.display = 'block';
-        pCustom.value = order[6] || "";
-
-        const wp1 = document.getElementById('wp_1');
-        if (wp1 && order[3]) {
-            wp1.value = order[3];
-            wp1.removeAttribute('data-lat');
-            wp1.removeAttribute('data-lon');
-            
-            try { 
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(order[3])}&countrycodes=bg&limit=1`);
-                const data = await res.json(); 
-                if (data && data.length > 0) { 
-                    wp1.dataset.lat = data[0].lat; 
-                    wp1.dataset.lon = data[0].lon; 
-                    calcRouteOSM(); 
-                }
-            } catch(e) {}
-        }
+    function silentRefresh() {
+        if(!currentUser) return;
+        showLoader("Опресняване...");
+        fetchDataSilently();
     }
 
-    function generateTripLog() {
-        const err = document.getElementById('formError'); err.style.display = 'none';
-        
-        let isValid = true;
-        ['tripCar', 'tripDate', 'tripPurpose', 'locStart', 'locEnd', 'tripKmEnd'].forEach(id => {
-            const el = document.getElementById(id);
-            if(!el || !el.value) { if(el) el.style.borderColor = "var(--danger)"; isValid = false; }
-            else el.style.borderColor = "var(--border-input)";
-        });
-        
-        if(isCanvasBlank(tripCanvasEl)) { document.getElementById('sigWrapTrip').style.borderColor = "var(--danger)"; document.getElementById('sigWrapTrip').style.borderStyle = "solid"; isValid = false; }
-
-        if(!isValid) { err.innerHTML = "⚠️ Попълнете всички задължителни полета и положете подпис!"; err.style.display = 'block'; return; }
-
-        const carReg = document.getElementById('tripCar').value;
-        const orderNum = document.getElementById('tripOrder').value;
-        let tDate = document.getElementById('tripDate').value; 
-        let purp = document.getElementById('tripPurpose').value;
-        if(purp === 'other') purp = document.getElementById('tripPurposeCustom').value;
-        
-        const start = document.getElementById('locStart').value.trim();
-        const end = document.getElementById('locEnd').value.trim();
-        let routeParts = [start];
-        for(let i = 1; i <= wpCount; i++) {
-            let wp = document.getElementById('wp_' + i);
-            if(wp && wp.value.trim() !== '') routeParts.push(wp.value.trim());
-        }
-        routeParts.push(end);
-        
-        const sKm = parseInt(document.getElementById('tripKmStart').value);
-        const eKm = parseInt(document.getElementById('tripKmEnd').value);
-        const total = parseInt(document.getElementById('tripKmTotal').value);
-
-        if(eKm <= sKm) { err.innerHTML = "⚠️ Крайният километраж трябва да е по-голям от началния."; document.getElementById('tripKmEnd').style.borderColor="var(--danger)"; err.style.display = 'block'; return; }
-
-        if(tDate.includes('-')) { const [y, m, dt] = tDate.split('-'); tDate = `${dt}.${m}.${y}`; }
-        const dParts = tDate.split('.');
-        const docID = `${dParts[2].slice(-2)}${dParts[1]}${dParts[0]}_${carReg}__${eKm}`;
-
-        const carObj = localCars.find(c => c.reg === carReg);
-        const sigBase64 = tripCanvasEl.toDataURL('image/webp', 0.5);
-        
-        let rawDriverName = getUserFullName(currentUser).trim();
-        let cleanDriverName = rawDriverName;
-        if (rawDriverName.endsWith(" ЛИМ") || rawDriverName.endsWith(" КЛП") || rawDriverName.endsWith(" ЛБГ")) {
-             cleanDriverName = rawDriverName.slice(0, -4).trim();
-        }
-
-        currentPendingLog = { 
-            type: 'trip',
-            id: docID, date: tDate, car: carReg, model: carObj.model, owner: carObj.owner,
-            order: orderNum, purpose: purp, route: routeParts.join(' ➔ '), 
-            startKm: sKm, endKm: eKm, totalKm: total, gpsKm: calculatedMapDistance || 0,
-            fuelNorm: carObj.norm, fuelTotal: ((total * parseFloat(carObj.norm))/100).toFixed(2), fuelType: carObj.fuel, 
-            signature: sigBase64, user: currentUser, driverFullName: cleanDriverName
-        };
-        currentDocType = 'trip';
-
-        document.getElementById('printPreview').innerHTML = generateTripHtmlForPrint(currentPendingLog);
-        document.getElementById('btnTabPrint').style.display = 'block';
-        document.getElementById('btnSaveGoogle').style.display = 'block';
-        openTab('tab-print', document.getElementById('btnTabPrint'));
+    function fetchDataSilently() {
+        callAPI('getInitialData', { author: currentUser }).then(res => {
+            hideLoader();
+            if(res.status === 'error') { logout(); } else { processData(res); }
+        }).catch(err => { hideLoader(); alert("Грешка при автоматично опресняване: " + err.toString()); });
     }
 
-    function generateTripHtmlForPrint(data) {
-        return `
-            <div class="print-wrapper" style="font-family: 'Times New Roman', serif; padding: 15px;">
-                <div style="border-bottom: 2px solid #2c3e50; padding-bottom: 20px; margin-bottom: 30px;">
-                    <div style="font-weight: bold; font-size: 16px; color: #2c3e50; margin-bottom: 15px; text-transform: uppercase;">🏢 ${data.owner}</div>
-                    <div style="text-align: center;"><h2 style="margin: 0; font-size: 22px; color: #2c3e50;">ПЪТЕН ЛИСТ № ${data.id}</h2></div>
-                </div>
-                <table style="width:100%; font-size:14px; margin-bottom:30px; border-collapse: collapse;">
-                    <tr><td width="25%" style="padding: 8px 0; border-bottom: 1px solid #ecf0f1;"><strong>Дата:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #ecf0f1;">${data.date}</td></tr>
-                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #ecf0f1;"><strong>Цел:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #ecf0f1;">${data.purpose}</td></tr>
-                    <tr><td style="padding: 8px 0; border-bottom: 1px solid #ecf0f1;"><strong>Заповед:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #ecf0f1;">${data.order === "0" ? "Няма" : `№ ${data.order}`}</td></tr>
-                </table>
-                <table style="width:100%; border: 1px solid #bdc3c7; font-size:14px; margin-bottom:30px; border-collapse: collapse;">
-                    <tr><td style="border: 1px solid #bdc3c7; padding:10px;">Автомобил</td><td style="border: 1px solid #bdc3c7; padding:10px;"><strong>${data.model} | ${data.car}</strong></td></tr>
-                    <tr><td style="border: 1px solid #bdc3c7; padding:10px;">Разход</td><td style="border: 1px solid #bdc3c7; padding:10px;">${data.fuelTotal} ${data.fuelType.includes('Ток') ? 'kWh' : 'Литра'}</td></tr>
-                </table>
-                <table style="width:100%; border: 1px solid #bdc3c7; font-size:14px; margin-bottom:40px; border-collapse: collapse;">
-                    <tr style="background:#ecf0f1;">
-                        <th style="border: 1px solid #bdc3c7; padding:12px;">Маршрут</th><th style="border: 1px solid #bdc3c7; padding:12px;">Нач. КМ</th><th style="border: 1px solid #bdc3c7; padding:12px;">Краен КМ</th><th style="border: 1px solid #bdc3c7; padding:12px;">Изминати</th>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #bdc3c7; padding:12px;">${data.route}</td><td style="border: 1px solid #bdc3c7; padding:12px; text-align:center;">${data.startKm}</td><td style="border: 1px solid #bdc3c7; padding:12px; text-align:center;">${data.endKm}</td><td style="border: 1px solid #bdc3c7; padding:12px; text-align:center; font-weight:bold;">${data.totalKm} км</td>
-                    </tr>
-                </table>
-                <div style="display:flex; justify-content:flex-end; margin-top:60px;">
-                    <div style="width:45%; text-align:center;">
-                        <div style="color:#2c3e50; font-size: 13px; margin-bottom: 5px;"><strong>Водач:</strong></div>
-                        <img src="${data.signature}" style="max-height:65px; max-width:100%; object-fit:contain; display:block; margin: 0 auto;">
-                        <div style="border-top: 1px solid #000; width: 160px; margin: 5px auto;"></div>
-                        <div style="font-size:16px; color:#2c3e50; font-weight:bold; margin-bottom: 3px;">${data.driverFullName}</div>
-                        <div style="font-size:11px; color:#7f8c8d;">Дигитално вписване (Потребител: ${data.user})</div>
-                    </div>
-                </div>
-            </div>`;
+    function processData(res) {
+        pricesDB = res.prices; objectsDB = res.objects; issuersDB = res.issuers; archiveDB = res.archive; companiesDB = res.companies || {};
+        document.getElementById('topbarUser').innerText = currentUser;
+        initDropdowns(); renderPriceTable(); renderObjectsTable(); renderCompaniesTable(); renderIssuersTable(); renderArchiveTable();
     }
 
-    // --- ЗАПИС И ПЕЧАТ ---
-    async function saveToGoogleSheets() {
-        if(!currentPendingLog) return;
-        
-        let payloadToSave;
-        if(currentDocType === 'order') {
-            const dataArr = [
-                currentPendingLog.num, currentPendingLog.date, currentPendingLog.user, 
-                currentPendingLog.dest, currentPendingLog.startDT, currentPendingLog.endDT, 
-                currentPendingLog.purpose, currentPendingLog.report, currentPendingLog.signature, currentPendingLog.driverFullName
-            ];
-            payloadToSave = { sheetName: "Пътни_Листове_База_Заповеди", dataArray: dataArr };
-            
-            document.getElementById('orderDest').value = ''; document.getElementById('taskPresetSelector').value = '';
-            document.getElementById('customOrderFields').style.display = 'none'; clearSignature('order');
-            
-        } else {
-            const dataArr = [
-                currentPendingLog.id, currentPendingLog.date, currentPendingLog.user, currentPendingLog.car, currentPendingLog.order, 
-                currentPendingLog.purpose, currentPendingLog.route, currentPendingLog.startKm, currentPendingLog.endKm, currentPendingLog.totalKm, 
-                currentPendingLog.gpsKm, currentPendingLog.fuelTotal, currentPendingLog.owner, currentPendingLog.signature    
-            ];
-            payloadToSave = { sheetName: "Пътни_Листове_База_Пътни_Листове", dataArray: dataArr };
-            
-            applyDefaultStartLoc(); document.getElementById('wp_1').value = ''; document.getElementById('waypointsContainer').innerHTML = ''; wpCount = 1;
-            document.getElementById('tripKmEnd').value = ''; document.getElementById('tripKmTotal').value = ''; clearSignature('trip');
-        }
-
-        document.getElementById('btnTabPrint').style.display = 'none';
-        alert("Данните са приети и се записват във фонов режим!");
-
-        let returnTabBtn = currentDocType === 'order' ? document.querySelectorAll('.tab-btn')[1] : document.querySelectorAll('.tab-btn')[2];
-        let returnTabId = currentDocType === 'order' ? 'tab-orders' : 'tab-new';
-        openTab(returnTabId, returnTabBtn);
-        
-        currentPendingLog = null; currentDocType = null;
-
+    async function callAPI(action, params = {}) {
+        params.action = action;
+        if(!params.author) params.author = currentUser;
         try {
-            const result = await callGoogleAPI("save", payloadToSave);
-            if(result.success) {
-                const r = await callGoogleAPI("getData", {});
-                if(r.success) {
-                    let rawOrders = r.data.orders || []; if(rawOrders.length > 0 && rawOrders[0][0].includes("Заповед")) rawOrders.shift();
-                    localOrders = rawOrders; renderOrdersArchive(); populateTripSelects();
-                    allLogs = r.data.logs || []; if(allLogs.length > 0 && allLogs[0][0].includes("ID")) allLogs.shift();
-                    renderLogsArchive(allLogs);
-                }
-            }
-        } catch (error) {}
+            const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(params) });
+            return await response.json();
+        } catch (err) { throw err; }
     }
 
-    function toggleRowCheckbox(id) { const cb = document.getElementById(id); if(cb) cb.checked = !cb.checked; }
-    function toggleAllArchive(source, type) { 
-        const className = type === 'trip' ? '.arc-trip-checkbox' : '.arc-ord-checkbox';
-        document.querySelectorAll(className).forEach(cb => cb.checked = source.checked); 
+    function showLoader(text="Зареждане...") { document.getElementById('loaderText').innerText = text; document.getElementById('loaderOverlay').style.display = 'flex'; }
+    function hideLoader() { document.getElementById('loaderOverlay').style.display = 'none'; }
+    function formatNumber(el) { el.value = el.value.replace(/,/g, '.').replace(/[^0-9.]/g, ''); }
+    function formatDate(d) { if (isNaN(d)) return ""; return `${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}`; }
+
+    function openTab(tabId, el) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.getElementById(tabId).classList.add('active');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); el.classList.add('active');
+        if(tabId === 'section-preview' && !isWizardValid) { document.getElementById('actionButtons').style.display = 'none'; document.getElementById('quickInvoiceEntry').style.display = 'none'; document.getElementById('validationErrorDoc').style.display = 'block'; document.getElementById('previewContainer').innerHTML=""; }
+        window.scrollTo(0, 0);
     }
 
-    function printSelectedArchive() {
-        const className = activeArchive === 'trip' ? '.arc-trip-checkbox:checked' : '.arc-ord-checkbox:checked';
-        const checkboxes = document.querySelectorAll(className);
-        const err = document.getElementById('archiveError'); err.style.display = 'none';
+    function setWorkingType(type) {
+        currentWorkingType = type;
+        const clr = type === 'tok' ? '#e67e22' : '#2980b9';
+        const clrD = type === 'tok' ? '#d35400' : '#1f618d';
+        document.documentElement.style.setProperty('--primary', clr);
+        document.documentElement.style.setProperty('--primary-dark', clrD);
+        
+        document.getElementById('btnTypeTok').classList.toggle('active', type === 'tok');
+        document.getElementById('btnTypeVoda').classList.toggle('active', type === 'voda');
+        
+        const obj = objectsDB[document.getElementById('objectSelect').value];
+        if(!obj) return;
 
-        if(checkboxes.length === 0) { err.innerText = "⚠️ Изберете поне един документ от списъка!"; err.style.display = 'block'; return; }
+        document.getElementById('readsBlock').style.display = 'block';
+        
+        let tType = type === 'tok' ? obj.tariffsTok : obj.tariffsVoda;
+        let mInfo = type === 'tok' ? obj.meterTok : obj.meterVoda;
+        document.getElementById('meterInfo').value = mInfo;
+        
+        document.getElementById('markupDiv').style.display = type === 'tok' ? 'block' : 'none';
+        
+        const isDual = tType == 2;
+        document.querySelector(`input[name="tariffType"][value="${isDual ? '2' : '1'}"]`).checked = true;
+        document.getElementById('singleTariffDiv').style.display = isDual ? 'none' : 'block'; 
+        document.getElementById('dualTariffDiv').style.display = isDual ? 'block' : 'none';
+        
+        if (type === 'tok') {
+            document.getElementById('lblSingle').innerText = "Една тарифа (Т)"; document.getElementById('lblDual').innerText = "Две тарифи (Т1, Т2)";
+            document.getElementById('lblOld1').innerText = "База (Т1)"; document.getElementById('lblNew1').innerText = "Терен (Т1)";
+            document.getElementById('lblOld2').innerText = "База (Т2)"; document.getElementById('lblNew2').innerText = "Терен (Т2)";
+        } else {
+            document.getElementById('lblSingle').innerText = "Само Доставка"; document.getElementById('lblDual').innerText = "Доставка + Отвеждане";
+            document.getElementById('lblOld1').innerText = "База (Доставка)"; document.getElementById('lblNew1').innerText = "Терен (Доставка)";
+            document.getElementById('lblOld2').innerText = "База (Отвеждане)"; document.getElementById('lblNew2').innerText = "Терен (Отвеждане)";
+        }
 
-        let combinedHtml = "";
-        checkboxes.forEach((cb, index) => {
-            const rowArr = JSON.parse(cb.value);
+        autoFetchOldRead(obj.client, type, isDual);
+    }
+
+    function checkObjectTypes() {
+        const obj = objectsDB[document.getElementById('objectSelect').value];
+        if(!obj) return;
+        const hasTok = obj.tariffsTok && obj.tariffsTok !== "Няма наличен";
+        const hasVoda = obj.tariffsVoda && obj.tariffsVoda !== "Няма наличен";
+        document.getElementById('readsBlock').style.display = 'none';
+        
+        if (hasTok && hasVoda) {
+            document.getElementById('typeSelectionBlock').style.display = 'block';
+            setWorkingType('tok');
+        } else if (hasTok) {
+            document.getElementById('typeSelectionBlock').style.display = 'none';
+            setWorkingType('tok');
+        } else if (hasVoda) {
+            document.getElementById('typeSelectionBlock').style.display = 'none';
+            setWorkingType('voda');
+        } else {
+            document.getElementById('typeSelectionBlock').style.display = 'none';
+            alert("Този обект няма конфигурирани уреди!");
+        }
+    }
+
+    function autoFetchOldRead(clientName, docType, isDual) {
+        document.getElementById('oldT').value = ""; document.getElementById('oldT1').value = ""; document.getElementById('oldT2').value = "";
+        document.getElementById('startDate').value = "";
+        
+        document.getElementById('hintOldT_container').style.display = 'none';
+        document.getElementById('hintOldT1_container').style.display = 'none';
+        document.getElementById('hintOldT2_container').style.display = 'none';
+        
+        let fA = archiveDB.filter(r => r.client === clientName && r.docType === docType);
+        if(fA.length > 0) {
+            fA.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+            let lastR = fA[0];
             
-            if(activeArchive === 'trip') {
-                const carObj = localCars.find(c => c.reg === rowArr[3]) || {};
-                
-                let rawDriverName = getUserFullName(rowArr[2]).trim();
-                let cleanDriverName = rawDriverName;
-                if (rawDriverName.endsWith(" ЛИМ") || rawDriverName.endsWith(" КЛП") || rawDriverName.endsWith(" ЛБГ")) {
-                    cleanDriverName = rawDriverName.slice(0, -4).trim();
+            let v1 = (lastR.lastReadT1 && lastR.lastReadT1 !== "undefined") ? lastR.lastReadT1 : "";
+            let v2 = (lastR.lastReadT2 && lastR.lastReadT2 !== "undefined") ? lastR.lastReadT2 : "";
+            let rDate = (lastR.realReadDate && lastR.realReadDate !== "undefined") ? lastR.realReadDate : "";
+            
+            if (docType === 'tok') {
+                document.getElementById('autoFetchNotice').innerText = "💡 Старият отчет и дата за ТОК са извлечени и попълнени автоматично от Архива.";
+                if(isDual) {
+                    if(v1) { document.getElementById('hintOldT1_val').innerText = v1; document.getElementById('hintOldT1_container').style.display = 'block'; document.getElementById('oldT1').value = v1; }
+                    if(v2) { document.getElementById('hintOldT2_val').innerText = v2; document.getElementById('hintOldT2_container').style.display = 'block'; document.getElementById('oldT2').value = v2; }
+                } else {
+                    if(v1) { document.getElementById('hintOldT_val').innerText = v1; document.getElementById('hintOldT_container').style.display = 'block'; document.getElementById('oldT').value = v1; }
                 }
-
-                const logData = {
-                    id: rowArr[0], date: rowArr[1], purpose: rowArr[5], order: rowArr[4], owner: rowArr[12], model: carObj.model || "", car: rowArr[3], fuelTotal: rowArr[11], fuelType: carObj.fuel || "",
-                    route: rowArr[6], startKm: rowArr[7], endKm: rowArr[8], totalKm: rowArr[9], signature: rowArr[13], driverFullName: cleanDriverName, user: rowArr[2]
-                };
-                combinedHtml += generateTripHtmlForPrint(logData);
+                if(rDate) document.getElementById('startDate').value = rDate;
             } else {
-                const rawDriverName = getUserFullName(rowArr[2]).trim();
-                let prefix = "LIM";
-                let cleanDriverName = rawDriverName;
-                if (rawDriverName.endsWith(" ЛИМ")) { prefix = "LIM"; cleanDriverName = rawDriverName.slice(0, -4).trim(); }
-                else if (rawDriverName.endsWith(" КЛП")) { prefix = "KLP"; cleanDriverName = rawDriverName.slice(0, -4).trim(); }
-                else if (rawDriverName.endsWith(" ЛБГ")) { prefix = "LBG"; cleanDriverName = rawDriverName.slice(0, -4).trim(); }
-                const company = companiesInfo[prefix];
-
-                const orderData = {
-                    num: rowArr[0], date: rowArr[1], driverFullName: cleanDriverName, 
-                    dest: rowArr[3], startDT: rowArr[4], endDT: rowArr[5], purpose: rowArr[6], 
-                    report: rowArr[7], signature: rowArr[8], user: rowArr[2],
-                    companyName: company.name, companyAddress: company.address, 
-                    companyEik: company.eik, companyManager: company.manager
-                };
-                combinedHtml += generateOrderHtmlForPrint(orderData);
+                document.getElementById('autoFetchNotice').innerText = "🤖 Базата (Стар отчет и дата) е извлечена автоматично от Архива. Можете да я редактирате при нужда.";
+                if(isDual) {
+                    document.getElementById('oldT1').value = v1;
+                    document.getElementById('oldT2').value = v2;
+                } else {
+                    document.getElementById('oldT').value = v1;
+                }
+                if(rDate) document.getElementById('startDate').value = rDate;
             }
-            if (index < checkboxes.length - 1) combinedHtml += `<div class="page-break"></div>`;
-        });
-
-        document.getElementById('printPreview').innerHTML = combinedHtml;
-        document.getElementById('btnSaveGoogle').style.display = 'none'; 
-        document.getElementById('btnTabPrint').style.display = 'block';
-        openTab('tab-print', document.getElementById('btnTabPrint'));
+            
+            document.getElementById('autoFetchNotice').style.display = 'block';
+            return;
+        }
+        document.getElementById('autoFetchNotice').style.display = 'none';
     }
 
-    async function deleteRecord(sheetName, id) {
-        if(!confirm(`Сигурни ли сте, че искате да изтриете запис ${id}?`)) return;
-        showLoader("Изтриване от базата...");
-        const result = await callGoogleAPI("delete", { sheetName: sheetName, recordId: id });
-        await callGoogleAPI("save", { sheetName: "Пътни_Листове_База_Логове_Система", dataArray: [new Date().toLocaleString('bg-BG'), currentUser, `ИЗТРИВАНЕ: ${sheetName}`, `ИД: ${id}`] });
-        hideLoader();
-        if (result && result.success) alert(`Успешно изтрихте запис ${id}!`);
-        initSystem();
+    function initDropdowns() {
+        const os = document.getElementById('objectSelect'), is = document.getElementById('issuerSelect'), ep = document.getElementById('editProvider');
+        os.innerHTML = '<option value="" disabled selected>-- Изберете обект --</option>'; is.innerHTML = '<option value="" disabled selected>-- Изберете лице --</option>'; ep.innerHTML = '<option value="" disabled selected>-- Изберете наемодател --</option>';
+        Object.keys(objectsDB).sort().forEach(n => os.appendChild(new Option(n, n)));
+        issuersDB.forEach(n => is.appendChild(new Option(n, n)));
+        Object.keys(companiesDB).sort().forEach(c => ep.appendChild(new Option(c, c)));
+        const d = new Date(), cm = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2);
+        document.getElementById('billingStartMonth').value = cm; document.getElementById('billingEndMonth').value = cm;
     }
 
-    async function editOrder(orderJson) {
-        const orderArr = JSON.parse(orderJson);
-        const oldNum = orderArr[0];
-        const oldDate = orderArr[1];
-
-        const newNum = prompt("Коригиране на № Заповед:", oldNum);
-        if (newNum === null) return; 
+    function goToStep2() {
+        const err = document.getElementById('step1Error'), obj = document.getElementById('objectSelect').value;
+        const sDt = document.getElementById('startDate').value, eDt = document.getElementById('endDate').value;
         
-        const newDate = prompt("Коригиране на Дата (формат DD.MM.YYYY):", oldDate);
-        if (newDate === null) return; 
-
-        if (newNum.trim() === oldNum && newDate.trim() === oldDate) return; 
-
-        showLoader("Запазване на корекцията...");
+        if(!obj || !sDt || !eDt) { err.innerText = "⚠️ Изберете Обект, База и Нов отчет (дати)!"; err.style.display = 'block'; return; }
+        if(new Date(eDt) <= new Date(sDt)) { err.innerText = "⚠️ Датата на новия отчет (Терен) трябва да е след Базата!"; err.style.display = 'block'; return; }
         
-        const delRes = await callGoogleAPI("delete", { sheetName: "Пътни_Листове_База_Заповеди", recordId: oldNum });
-        if (!delRes.success) {
-            hideLoader(); alert("⚠️ Възникна проблем при намирането на оригиналната заповед."); return;
+        const isDual = document.querySelector('input[name="tariffType"]:checked').value === "2";
+        
+        let o1, n1, o2, n2, o0, n0;
+        if(isDual) {
+            o1=parseFloat(document.getElementById('oldT1').value); n1=parseFloat(document.getElementById('newT1').value); o2=parseFloat(document.getElementById('oldT2').value); n2=parseFloat(document.getElementById('newT2').value);
+            if(isNaN(o1)||isNaN(n1)||isNaN(o2)||isNaN(n2)) { err.innerText = "⚠️ Въведете всички показания!"; err.style.display = 'block'; return; }
+            if(n1<o1 || n2<o2) { err.innerText = "⚠️ Новият отчет не може да е по-малък от предходната база!"; err.style.display = 'block'; return; }
+        } else {
+            o0=parseFloat(document.getElementById('oldT').value); n0=parseFloat(document.getElementById('newT').value);
+            if(isNaN(o0)||isNaN(n0)) { err.innerText = "⚠️ Въведете показания!"; err.style.display = 'block'; return; }
+            if(n0<o0) { err.innerText = "⚠️ Новият отчет не може да е по-малък от предходната база!"; err.style.display = 'block'; return; }
+        }
+        
+        if(currentWorkingType === 'tok') {
+            if(isDual){ if(!Number.isInteger(o1)||!Number.isInteger(n1)||!Number.isInteger(o2)||!Number.isInteger(n2)) { err.innerText = "⚠️ При ТОК въвеждайте само цели числа!"; err.style.display = 'block'; return; } }
+            else { if(!Number.isInteger(o0)||!Number.isInteger(n0)) { err.innerText = "⚠️ При ТОК въвеждайте само цели числа!"; err.style.display = 'block'; return; } }
         }
 
-        orderArr[0] = newNum.trim();
-        orderArr[1] = newDate.trim();
-        if (orderArr[4] && orderArr[4].includes(oldDate)) orderArr[4] = orderArr[4].replace(oldDate, newDate.trim());
-        if (orderArr[5] && orderArr[5].includes(oldDate)) orderArr[5] = orderArr[5].replace(oldDate, newDate.trim());
+        err.style.display = 'none'; document.getElementById('wizard-step1').style.display = 'none'; document.getElementById('wizard-step2').style.display = 'block'; window.scrollTo(0, 0);
+    }
+    function goToStep1() { document.getElementById('wizard-step2').style.display = 'none'; document.getElementById('wizard-step1').style.display = 'block'; isWizardValid = false; }
 
-        const saveRes = await callGoogleAPI("save", { sheetName: "Пътни_Листове_База_Заповеди", dataArray: orderArr });
-        await callGoogleAPI("save", { sheetName: "Пътни_Листове_База_Логове_Система", dataArray: [new Date().toLocaleString('bg-BG'), currentUser, `РЕДАКЦИЯ ЗАПОВЕД`, `Стар №: ${oldNum} -> Нов №: ${newNum.trim()}`] });
-        hideLoader();
-        if (saveRes.success) { alert(`Успешно коригирахте заповедта!`); initSystem(); } 
-        else { alert("⚠️ Грешка при запис на новите данни: " + saveRes.message); }
+    function generateDocument() {
+        const err = document.getElementById('step2Error'), o = document.getElementById('objectSelect').value, obj = objectsDB[o], isN = document.getElementById('issuerSelect').value;
+        const bStart = document.getElementById('billingStartMonth').value, bEnd = document.getElementById('billingEndMonth').value;
+        const sDtVal = document.getElementById('startDate').value, eDtVal = document.getElementById('endDate').value;
+        
+        if(!isN || !bStart || !bEnd) { err.innerText = "⚠️ Попълнете всички полета!"; err.style.display = 'block'; return; }
+        
+        // ЗАЩИТА 1: Обърнати месеци в периода
+        if (bStart > bEnd) { 
+            err.innerText = "⚠️ Периодът е невалиден: 'От Месец' не може да бъде след 'До Месец'!"; 
+            err.style.display = 'block'; return; 
+        }
+
+        // ЗАЩИТА 2: Валидация на надценката за Ток
+        let checkMargin = parseFloat(document.getElementById('marginPrice').value);
+        if (currentWorkingType === 'tok' && (isNaN(checkMargin) || checkMargin < 0)) {
+            err.innerText = "⚠️ Надценката трябва да е валидно положително число или 0!";
+            err.style.display = 'block'; return;
+        }
+
+        let cMD = new Date(bStart + "-01"), eMD = new Date(bEnd + "-01");
+        let sumP = 0, count = 0, mis = false;
+        while(cMD <= eMD) {
+            const k = cMD.getFullYear() + "-" + ("0" + (cMD.getMonth() + 1)).slice(-2);
+            if(pricesDB[k]) { 
+                let pr = currentWorkingType === 'tok' ? pricesDB[k].tok : pricesDB[k].voda;
+                if(pr !== undefined && pr !== "") { sumP += parseFloat(pr); count++; } else { mis = true; break; }
+            } else { mis = true; break; }
+            cMD.setMonth(cMD.getMonth() + 1);
+        }
+        if (mis || count === 0) { err.innerText = "⚠️ Липсва цена за избрания период!"; err.style.display = 'block'; return; }
+        const avg = currentWorkingType === 'tok' ? (sumP / count) / 1000 : (sumP / count); 
+        
+        // Сигурно четене на датите в локално време срещу часови разминавания
+        const [sy, sm, sd] = sDtVal.split('-'); const sDt = new Date(sy, sm - 1, sd);
+        const [ey, em, ed] = eDtVal.split('-'); const eDt = new Date(ey, em - 1, ed);
+        const [bY, bM] = bEnd.split('-'); const tDt = new Date(bY, bM, 0); 
+        
+        // ЗАЩИТА 3: Краят на месеца е след теренния отчет
+        if (tDt > eDt) { 
+            err.innerText = "⚠️ Целевият период (края на месеца) е след датата на новия отчет (Терен)! Не може да се прогнозира напред."; 
+            err.style.display = 'block'; return; 
+        }
+
+        // ЗАЩИТА 5 (ПРЕМЕСТЕНА НАПРЕД): Проверка за дублиране (вече фактуриран период)
+        let targetMonths = [];
+        let tempMD = new Date(bStart + "-01");
+        let endMD2 = new Date(bEnd + "-01");
+        while(tempMD <= endMD2) {
+            targetMonths.push(tempMD.getFullYear() + "-" + ("0" + (tempMD.getMonth() + 1)).slice(-2));
+            tempMD.setMonth(tempMD.getMonth() + 1);
+        }
+        
+        let isAlreadyBilled = archiveDB.some(r => {
+            if (r.client === obj.client && r.docType === currentWorkingType) {
+                return targetMonths.some(m => (r.period || "").includes(m));
+            }
+            return false;
+        });
+
+        if (isAlreadyBilled) {
+            err.innerText = `⚠️ ГРЕШКА: Този период (или част от него) вече е фактуриран за този обект/клиент (${currentWorkingType === 'tok' ? '⚡ ТОК' : '💧 ВОДА'})! Проверете Архива.`; 
+            err.style.display = 'block'; return; 
+        }
+
+        // ЗАЩИТА 4 (ОЛЕКОТЕНА): Краят на фактурирания месец е преди датата на предходната База
+        if (tDt < sDt) {
+            err.innerText = "⚠️ Месецът за фактуриране не може да бъде преди датата на Базата (Предходния отчет)! Изберете съвместим период."; 
+            err.style.display = 'block'; return; 
+        }
+        
+        let tDays = Math.round((eDt - sDt) / 86400000); if (tDays <= 0) tDays = 1; 
+        let tarDays = Math.round((tDt - sDt) / 86400000);
+        let c = tarDays / tDays; 
+        if (c > 1) { c = 1; tarDays = tDays; }
+        if (c < 0) { c = 0; tarDays = 0; }
+        
+        let isDual = document.querySelector('input[name="tariffType"]:checked').value === "2";
+        let cTot1 = 0, cTot2 = 0, oTxt="", nTxt="", cnTxt="";
+        let dbCalc1 = "", dbCalc2 = "", dbReal1 = "", dbReal2 = "";
+        
+        if(isDual) {
+            let o1 = parseFloat(document.getElementById('oldT1').value), n1 = parseFloat(document.getElementById('newT1').value);
+            let o2 = parseFloat(document.getElementById('oldT2').value), n2 = parseFloat(document.getElementById('newT2').value);
+            
+            let interp1 = (n1 - o1) * c;
+            let interp2 = (n2 - o2) * c;
+
+            cTot1 = Math.round(interp1); 
+            cTot2 = Math.round(interp2); 
+            dbCalc1 = Math.round(o1 + cTot1); 
+            dbCalc2 = Math.round(o2 + cTot2);
+            cnTxt = `Т1: ${dbCalc1} / Т2: ${dbCalc2}`;
+            
+            dbReal1 = n1; dbReal2 = n2;
+            oTxt = `Т1: ${o1} / Т2: ${o2}`; nTxt = `Т1: ${n1} / Т2: ${n2}`;
+        } else {
+            let o0 = parseFloat(document.getElementById('oldT').value), n0 = parseFloat(document.getElementById('newT').value);
+            let interp0 = (n0 - o0) * c;
+
+            cTot1 = Math.round(interp0); 
+            dbCalc1 = Math.round(o0 + cTot1);
+            cnTxt = `${dbCalc1}`;
+            
+            dbReal1 = n0; dbReal2 = "";
+            oTxt = `${o0}`; nTxt = `${n0}`;
+        }
+        let cTotAll = cTot1 + cTot2;
+
+        const p = obj.provider;
+        let lhName = p.toUpperCase(), lhEik = "Н/Д", lhVat = "Н/Д", lhAddr = "Н/Д";
+        if (companiesDB[p]) { lhName = p.replace(/„|“/g, '').toUpperCase(); lhEik = companiesDB[p].eik; lhVat = companiesDB[p].vat; lhAddr = companiesDB[p].address; }
+        
+        let dType = document.getElementById('documentType').value, pDate = formatDate(new Date(document.getElementById('protocolDate').value)), bp = (bStart === bEnd) ? bStart : `${bStart} до ${bEnd}`;
+        let docTitle = dType === "protocol" ? (currentWorkingType === 'tok' ? "ПРОТОКОЛ ЗА ПРЕФАКТУРИРАНЕ НА ЕЛ. ЕНЕРГИЯ" : "ПРОТОКОЛ ЗА ПРЕФАКТУРИРАНЕ НА РАЗХОДИ ЗА ВОДА") : "УВЕДОМЛЕНИЕ ЗА РАЗПРЕДЕЛЕНИЕ НА РАЗХОДИ";
+        
+        let currentSource = currentWorkingType === 'tok' ? obj.sourceTok : obj.sourceVoda;
+
+        let introHTML = `<p>Днес, <span class="highlight">${pDate} г.</span>, се състави настоящият протокол относно:</p><p><strong>ТИТУЛЯР НА ПАРТИДА:</strong> <span class="highlight">${p}</span></p><p><strong>ПОЛЗВАТЕЛ:</strong> <span class="highlight">${obj.client}</span></p><p>Настоящият документ служи за установяване на дела от общите разходи за ${currentWorkingType==='tok'?'електрическа енергия':'вода'} за обект: <span class="highlight">${o}</span>, находящ се на адрес: <span class="highlight">${obj.address}</span>, захранван от: <span class="highlight">${currentSource}</span>, за отчетен период: <strong>${bp}</strong>.</p><p>Показанията са снети от контролен уред: <strong><span class="highlight">${document.getElementById('meterInfo').value}</span></strong>.</p>`;
+        
+        let sDtStr = formatDate(sDt);
+        let eDtStr = formatDate(eDt);
+        let tDtStr = formatDate(tDt);
+
+        let readsHTML = `
+            <div class="read-block read-real" style="margin-bottom: 6px; border-left: 4px solid #7f8c8d; background: #f4f6f7; padding: 6px 10px;">
+                <strong>📖 Предходно фактурирано показание (База):</strong><br>
+                • Стар отчет (към дата <strong>${sDtStr} г.</strong>): <span class="highlight">${oTxt}</span>
+            </div>
+            <div class="read-block read-real" style="margin-bottom: 6px; border-left: 4px solid #34495e; background: #f8f9fa; padding: 6px 10px;">
+                <strong>📋 Данни от терен (Ново засичане):</strong><br>
+                • Нов отчет (на дата <strong>${eDtStr} г.</strong>): <span class="highlight">${nTxt}</span>
+            </div>
+        `;
+
+        if (c < 1) {
+            readsHTML += `
+                <div class="read-block read-interp" style="border-left: 4px solid var(--primary); background: #fffbf2; padding: 6px 10px; color: #000;">
+                    <strong>🧮 Изчислен отчет за фактуриране (до края на месеца - ${tDtStr} г.):</strong><br>
+                    • Изчислено показание към края на периода: <span class="highlight">${cnTxt}</span><br>
+                    • База за префактуриране за периода (${tarDays} дни от общо ${tDays}): <strong>${cTotAll} ${currentWorkingType==='tok'?'kWh':'m³'}</strong>
+                </div>
+            `;
+        } else {
+            readsHTML += `
+                <div class="read-block read-real" style="border-left: 4px solid var(--success); background: #e8f8f5; padding: 6px 10px; color: #000;">
+                    • База за префактуриране за периода (${tDays} дни): <strong>${cTotAll} ${currentWorkingType==='tok'?'kWh':'m³'}</strong>
+                </div>
+            `;
+        }
+
+        let tableRows = "", gN = 0, mP = 0;
+        if(currentWorkingType === 'tok') {
+            mP = parseFloat(document.getElementById('marginPrice').value) || 0;
+            let tI = cTotAll * avg, tM = cTotAll * mP; gN = tI + tM;
+            tableRows = `<tr><td>1. Активна енергия (база цена БНЕБ)</td><td class="text-center">kWh</td><td class="text-center">${cTotAll}</td><td class="text-right">${avg.toFixed(4)}</td><td class="text-right highlight">${tI.toFixed(2)}</td></tr>
+                         <tr><td>2. Мрежови налози и технологични разходи</td><td class="text-center">kWh</td><td class="text-center">${cTotAll}</td><td class="text-right">${mP.toFixed(4)}</td><td class="text-right highlight">${tM.toFixed(2)}</td></tr>`;
+        } else {
+            if(isDual) {
+                let t1 = cTot1 * avg, t2 = cTot2 * avg; gN = t1 + t2;
+                tableRows = `<tr><td>1. Доставена вода</td><td class="text-center">m³</td><td class="text-center">${cTot1}</td><td class="text-right">${avg.toFixed(3)}</td><td class="text-right highlight">${t1.toFixed(2)}</td></tr>
+                             <tr><td>2. Отведена и пречистена вода</td><td class="text-center">m³</td><td class="text-center">${cTot2}</td><td class="text-right">${avg.toFixed(3)}</td><td class="text-right highlight">${t2.toFixed(2)}</td></tr>`;
+            } else {
+                let t1 = cTot1 * avg; gN = t1;
+                tableRows = `<tr><td>1. Доставена вода</td><td class="text-center">m³</td><td class="text-center">${cTot1}</td><td class="text-right">${avg.toFixed(3)}</td><td class="text-right highlight">${t1.toFixed(2)}</td></tr>`;
+            }
+        }
+        let v = gN * 0.20, gW = gN + v;
+
+        let html = `
+            <div class="letterhead"><div class="lh-details"><strong>${lhName}</strong><br>ЕИК: ${lhEik} | ДДС №: ${lhVat}<br>Адрес: ${lhAddr}</div></div>
+            <div class="prot-header"><h1>${docTitle}</h1></div>
+            <div class="prot-content">
+                ${introHTML}
+                ${readsHTML}
+                <table class="prot-table">
+                    <thead><tr><th style="width:45%;">Наименование на разхода</th><th style="width:10%;">Мярка</th><th style="width:15%;">Количество</th><th style="width:15%;">Ед. цена (€)</th><th style="width:15%;">Стойност (€)</th></tr></thead>
+                    <tbody>
+                        ${tableRows}
+                        <tr style="background-color: #f9f9f9; font-size: 12px;"><td colspan="4" class="text-right highlight">ОБЩА СУМА (без ДДС):</td><td class="text-right highlight">${gN.toFixed(2)} €</td></tr>
+                        <tr style="font-size: 12px;"><td colspan="4" class="text-right">Начислен ДДС (20%):</td><td class="text-right">${v.toFixed(2)} €</td></tr>
+                        <tr style="background-color: #f2f2f2; font-size: 13px;"><td colspan="4" class="text-right highlight">ОБЩА СУМА ЗА ПЛАЩАНЕ (с ДДС):</td><td class="text-right highlight" style="color: #c0392b;">${gW.toFixed(2)} €</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="signatures"><div class="signature-box"><p style="text-align: left;">Изготвил:<br><strong style="font-size: 13px; color: #000; display: block; margin-top: 5px;">${isN}</strong></p><span class="signature-line"></span><div style="font-size: 11px; color: #555;">(Подпис)</div></div></div>
+        `;
+        document.getElementById('previewContainer').innerHTML = html;
+        
+        err.style.display = 'none'; document.getElementById('actionButtons').style.display = 'flex'; document.getElementById('quickInvoiceEntry').style.display = 'block'; document.getElementById('validationErrorDoc').style.display = 'none';
+        isWizardValid = true; 
+        
+        currentProtocolData = { 
+            date: pDate, client: obj.client, totalNoVat: gN, period: bp, docType: currentWorkingType,
+            lastReadT1: (c < 1) ? dbCalc1 : dbReal1,
+            lastReadT2: (c < 1) ? dbCalc2 : dbReal2,
+            realReadDate: eDtVal,
+            realReadT1: dbReal1,
+            realReadT2: dbReal2,
+            oldReadT1: isDual ? document.getElementById('oldT1').value : document.getElementById('oldT').value,
+            oldReadT2: isDual ? document.getElementById('oldT2').value : ""
+        }; 
+        openTab('section-preview', document.querySelectorAll('.tab-btn')[3]);
     }
 
-    // --- ПОМОЩНИ GPS ФУНКЦИИ ---
-    function autoFetchLastKM() {
-        const selReg = document.getElementById('tripCar').value; let lastKnownKm = ""; let indicatorMsg = "Първо пътуване (От регистъра)";
-        let carLogs = allLogs.filter(log => log[3] === selReg);
-        if (carLogs.length > 0) { lastKnownKm = carLogs[carLogs.length - 1][8]; indicatorMsg = "Синхронизиран от последен пътен лист"; } 
-        else { const car = localCars.find(c => c.reg === selReg); if(car) lastKnownKm = car.km; }
-        const inputKm = document.getElementById('tripKmStart');
-        if(lastKnownKm !== "") { inputKm.value = lastKnownKm; inputKm.readOnly = true; document.getElementById('kmLockBtn').innerText = "🔒"; document.getElementById('kmSourceText').innerText = indicatorMsg; document.getElementById('kmSourceText').style.color = (carLogs.length > 0) ? "var(--success-dark)" : "#7f8c8d"; calcTotalKM(); calcRouteOSM(); }
+    function addPrice(type) {
+        let y = document.getElementById(type==='tok'?'dbYearT':'dbYearV').value, m = document.getElementById(type==='tok'?'dbMonthT':'dbMonthV').value;
+        let pr = document.getElementById(type==='tok'?'dbPriceT':'dbPriceV').value;
+        if(!pr) return;
+        showLoader("Запис...");
+        let payload = { period: `${y}-${m}` }; if(type==='tok') payload.priceTok = pr; else payload.priceVoda = pr;
+        callAPI('savePrice', payload).then(r=>{ pricesDB=r; renderPriceTable(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при запис на цена: " + e.toString()); });
     }
-    function toggleKMLock() {
-        const inputKm = document.getElementById('tripKmStart');
-        if (inputKm.readOnly) {
-            const r = prompt("Въведете причина за ръчната корекция:");
-            if(r && r.trim() !== "") { inputKm.readOnly = false; document.getElementById('kmLockBtn').innerText = "🔓"; document.getElementById('kmSourceText').innerText = "Ръчно коригиран: " + r; document.getElementById('kmSourceText').style.color = "var(--warning)"; inputKm.onchange = function() { calcTotalKM(); }; }
-        } else { inputKm.readOnly = true; document.getElementById('kmLockBtn').innerText = "🔒"; }
+    function removePrice(k) { if(confirm("Изтриване?")) { showLoader(); callAPI('deletePrice',{period:k}).then(r=>{ pricesDB=r; renderPriceTable(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при изтриване на цена: " + e.toString()); }); } }
+    function renderPriceTable() {
+        const b = document.getElementById('priceTableBody'); b.innerHTML = ''; 
+        Object.keys(pricesDB).sort().reverse().forEach(k => { b.innerHTML += `<tr><td>${k}</td><td>${pricesDB[k].tok?parseFloat(pricesDB[k].tok).toFixed(2)+' €':'-'}</td><td>${pricesDB[k].voda?parseFloat(pricesDB[k].voda).toFixed(3)+' €':'-'}</td><td class="action-btn action-delete" onclick="removePrice('${k}')">✖</td></tr>`; }); 
     }
-    function calcTotalKM() {
-        const s = parseInt(document.getElementById('tripKmStart').value) || 0; const e = parseInt(document.getElementById('tripKmEnd').value) || 0;
-        if(e > s) document.getElementById('tripKmTotal').value = e - s; else document.getElementById('tripKmTotal').value = "";
+
+    function toggleMeterFields(type) {
+        let val = document.getElementById('editTariffs' + type).value;
+        document.getElementById('editMeter' + type).disabled = (val === 'Няма наличен');
+        if(val === 'Няма наличен') document.getElementById('editMeter' + type).value = '';
     }
-    async function applyDefaultStartLoc() {
-        const startEl = document.getElementById('locStart'); const endEl = document.getElementById('locEnd');
-        startEl.value = defaultStartLoc; endEl.value = defaultStartLoc;
-        startEl.readOnly = true; startEl.style.background = "#f4f6f7"; startEl.style.color = "#7f8c8d"; document.getElementById('btnLocStart').innerText = "🔒";
-        endEl.readOnly = true; endEl.style.background = "#f4f6f7"; endEl.style.color = "#7f8c8d"; document.getElementById('btnLocEnd').innerText = "🔒";
-        if (!cachedDefLat) { try { const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(defaultStartLoc)}&limit=1`); const data = await res.json(); if (data.length > 0) { cachedDefLat = data[0].lat; cachedDefLon = data[0].lon; } } catch(e) {} }
-        if (cachedDefLat) { startEl.dataset.lat = cachedDefLat; startEl.dataset.lon = cachedDefLon; endEl.dataset.lat = cachedDefLat; endEl.dataset.lon = cachedDefLon; }
+    function openObjectEditor(k) {
+        document.getElementById('objectEditor').style.display = 'block';
+        if(k && objectsDB[k]) {
+            document.getElementById('editOriginalName').value = k; document.getElementById('editName').value = k;
+            document.getElementById('editProvider').value = objectsDB[k].provider; document.getElementById('editClient').value = objectsDB[k].client;
+            document.getElementById('editSourceTok').value = objectsDB[k].sourceTok || ""; document.getElementById('editAddress').value = objectsDB[k].address;
+            document.getElementById('editTariffsTok').value = objectsDB[k].tariffsTok || "1"; document.getElementById('editMeterTok').value = objectsDB[k].meterTok || "";
+            document.getElementById('editSourceVoda').value = objectsDB[k].sourceVoda || "";
+            document.getElementById('editTariffsVoda').value = objectsDB[k].tariffsVoda || "Няма наличен"; document.getElementById('editMeterVoda').value = objectsDB[k].meterVoda || "";
+        } else {
+            document.getElementById('editOriginalName').value = ""; document.getElementById('editName').value = ""; document.getElementById('editClient').value = ""; document.getElementById('editSourceTok').value = ""; document.getElementById('editAddress').value = "";
+            document.getElementById('editTariffsTok').value = "1"; document.getElementById('editMeterTok').value = ""; 
+            document.getElementById('editSourceVoda').value = ""; document.getElementById('editTariffsVoda').value = "Няма наличен"; document.getElementById('editMeterVoda').value = "";
+        }
+        toggleMeterFields('Tok'); toggleMeterFields('Voda');
     }
-    function toggleLocLock(inputId, btnId) {
-        const inputEl = document.getElementById(inputId); const btnEl = document.getElementById(btnId);
-        if (inputEl.readOnly) { inputEl.readOnly = false; inputEl.style.background = "#fff"; inputEl.style.color = "var(--text-main)"; btnEl.innerText = "🔓"; lastFocusedLocInput = inputId; } 
-        else { inputEl.readOnly = true; inputEl.style.background = "#f4f6f7"; inputEl.style.color = "#7f8c8d"; btnEl.innerText = "🔒"; }
+    function closeObjectEditor() { document.getElementById('objectEditor').style.display = 'none'; }
+    function saveObject() {
+        const n = document.getElementById('editName').value.trim(); if(!n) return; showLoader();
+        callAPI('saveObject', { objName: n, provider: document.getElementById('editProvider').value, sourceTok: document.getElementById('editSourceTok').value, client: document.getElementById('editClient').value, meterTok: document.getElementById('editMeterTok').value, address: document.getElementById('editAddress').value, tariffsTok: document.getElementById('editTariffsTok').value, meterVoda: document.getElementById('editMeterVoda').value, tariffsVoda: document.getElementById('editTariffsVoda').value, sourceVoda: document.getElementById('editSourceVoda').value })
+            .then(r => { objectsDB=r; closeObjectEditor(); renderObjectsTable(); initDropdowns(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при запис на обект: " + e.toString()); });
     }
-    function addWaypoint() {
-        wpCount++; const id = 'wp_' + wpCount; const div = document.createElement('div'); div.className = 'form-group autocomplete-wrapper';
-        div.innerHTML = `<input type="text" id="${id}" placeholder="Допълнителна спирка ${wpCount}" style="background:#fcf3cf;" onfocus="lastFocusedLocInput = this.id">`;
-        document.getElementById('waypointsContainer').appendChild(div); setupOSMAutocomplete(document.getElementById(id));
+    function deleteObject(k) { if(confirm("Изтриване?")) { showLoader(); callAPI('deleteObject',{objName:k}).then(r=>{ objectsDB=r; renderObjectsTable(); initDropdowns(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при изтриване на обект: " + e.toString()); }); } }
+    function renderObjectsTable() {
+        const b = document.getElementById('objectsTableBody'); b.innerHTML = ''; 
+        Object.keys(objectsDB).sort().forEach(k => { 
+            let o = objectsDB[k];
+            let tBadge = o.tariffsTok!=='Няма наличен' ? `<span class="badge badge-tok">⚡ ${o.meterTok}</span> ` : '';
+            let vBadge = o.tariffsVoda!=='Няма наличен' ? `<span class="badge badge-voda">💧 ${o.meterVoda}</span>` : '';
+            b.innerHTML += `<tr><td><strong>${k}</strong><br><span style="font-size:11px;">${o.client}</span></td><td>${tBadge}${vBadge}</td><td style="text-align:center;"><span class="action-btn action-edit" onclick="openObjectEditor('${k}')">✎</span> <span class="action-btn action-delete" onclick="deleteObject('${k}')">🗑</span></td></tr>`; 
+        }); 
     }
-    function setupOSMAutocomplete(inputEl) {
-        let osmTimeout;
-        inputEl.addEventListener('input', function() {
-            clearTimeout(osmTimeout); this.removeAttribute('data-lat'); this.removeAttribute('data-lon'); const val = this.value;
-            closeAllLists(); if (!val || val.length < 3) return;
-            osmTimeout = setTimeout(async () => {
-                try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&countrycodes=bg&limit=5`);
-                    const data = await res.json(); if (data.length === 0) return;
-                    const a = document.createElement("DIV"); a.setAttribute("class", "autocomplete-items"); this.parentNode.appendChild(a);
-                    data.forEach(item => {
-                        const b = document.createElement("DIV"); b.innerHTML = item.display_name; b.innerHTML += `<input type='hidden' value='${item.display_name.replace(/'/g, "&#39;")}' data-lat='${item.lat}' data-lon='${item.lon}'>`;
-                        b.addEventListener("click", function() { const hiddenInput = this.getElementsByTagName("input")[0]; inputEl.value = hiddenInput.value; inputEl.dataset.lat = hiddenInput.dataset.lat; inputEl.dataset.lon = hiddenInput.dataset.lon; closeAllLists(); calcRouteOSM(); });
-                        a.appendChild(b);
-                    });
-                } catch(e) {}
-            }, 600);
+
+    function openCompanyEditor(k) {
+        document.getElementById('companyEditor').style.display = 'block';
+        if(k && companiesDB[k]) { document.getElementById('compName').value = k; document.getElementById('compEik').value = companiesDB[k].eik; document.getElementById('compVat').value = companiesDB[k].vat; document.getElementById('compAddress').value = companiesDB[k].address; } 
+        else { document.getElementById('compName').value = ""; document.getElementById('compEik').value = ""; document.getElementById('compVat').value = ""; document.getElementById('compAddress').value = ""; }
+    }
+    function closeCompanyEditor() { document.getElementById('companyEditor').style.display = 'none'; }
+    function saveCompany() {
+        const n = document.getElementById('compName').value.trim(); if(!n) return; showLoader();
+        callAPI('saveCompany', { name: n, eik: document.getElementById('compEik').value, vat: document.getElementById('compVat').value, address: document.getElementById('compAddress').value }).then(r=>{ companiesDB=r; closeCompanyEditor(); renderCompaniesTable(); initDropdowns(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при запис на фирма: " + e.toString()); });
+    }
+    function renderCompaniesTable() {
+        const b = document.getElementById('companiesTableBody'); b.innerHTML = ''; 
+        Object.keys(companiesDB).sort().forEach(k => { b.innerHTML += `<tr><td><strong>${k}</strong></td><td style="font-size:11px;">ЕИК: ${companiesDB[k].eik}<br>Адрес: ${companiesDB[k].address}</td><td><span class="action-btn action-edit" onclick="openCompanyEditor('${k}')">✎</span></td></tr>`; }); 
+    }
+
+    function addIssuer() { const n = document.getElementById('newIssuerName').value.trim(); if(!n) return; showLoader(); callAPI('addIssuer',{name:n}).then(r=>{ issuersDB=r; document.getElementById('newIssuerName').value=''; renderIssuersTable(); initDropdowns(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при добавяне на служител: " + e.toString()); }); }
+    function deleteIssuer(n) { if(confirm("Изтриване?")){ showLoader(); callAPI('deleteIssuer',{name:n}).then(r=>{ issuersDB=r; renderIssuersTable(); initDropdowns(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при изтриване на служител: " + e.toString()); }); } }
+    function renderIssuersTable() { const b = document.getElementById('issuersTableBody'); b.innerHTML = ''; issuersDB.forEach(n => { b.innerHTML += `<tr><td><strong>${n}</strong></td><td style="text-align:center;"><span class="action-btn action-delete" onclick="deleteIssuer('${n}')">✖</span></td></tr>`; }); }
+
+    function filterArchive(type) {
+        archiveFilter = type;
+        document.getElementById('btnFiltTok').classList.toggle('active', type === 'tok'); document.getElementById('btnFiltVoda').classList.toggle('active', type === 'voda');
+        renderArchiveTable();
+    }
+    
+    function saveToArchive() {
+        const btn = document.getElementById('btnSaveArchiveTop');
+        btn.disabled = true;
+        btn.innerText = "⏳ ЗАПАЗВАНЕ...";
+        
+        showLoader("Запазване в Архива...");
+        let qNum = document.getElementById('quickInvNum').value.trim(), qDate = document.getElementById('quickInvDate').value;
+        if(qDate && qDate.includes('-')) { const [y, m, d] = qDate.split('-'); qDate = `${d}.${m}.${y}`; }
+        const rec = { 
+            id: Date.now().toString(), date: currentProtocolData.date, client: currentProtocolData.client, totalVat: (currentProtocolData.totalNoVat * 1.20).toFixed(2), 
+            invNum: qNum, invDate: qDate, createdBy: currentUser, period: currentProtocolData.period, 
+            lastReadT1: currentProtocolData.lastReadT1, lastReadT2: currentProtocolData.lastReadT2, 
+            realReadDate: currentProtocolData.realReadDate, realReadT1: currentProtocolData.realReadT1, realReadT2: currentProtocolData.realReadT2, docType: currentProtocolData.docType,
+            oldReadT1: currentProtocolData.oldReadT1 || "",
+            oldReadT2: currentProtocolData.oldReadT2 || ""
+        }; 
+        callAPI('saveArchiveRecord', { recordStr: JSON.stringify(rec) }).then(r=>{ 
+            archiveDB=r; alert('Успешен запис!'); filterArchive(currentProtocolData.docType); openTab('section-archive', document.querySelectorAll('.tab-btn')[4]); hideLoader(); 
+            btn.disabled = false; btn.innerText = "💾 ЗАПАЗИ В АРХИВ";
+        }).catch(e=>{ 
+            hideLoader(); alert("Грешка при запис в архива: " + e.toString()); 
+            btn.disabled = false; btn.innerText = "💾 ЗАПАЗИ В АРХИВ";
         });
     }
-    function closeAllLists(elmnt) { var x = document.getElementsByClassName("autocomplete-items"); for (var i = 0; i < x.length; i++) { if (elmnt != x[i]) { x[i].parentNode.removeChild(x[i]); } } }
-    document.addEventListener("click", function (e) { closeAllLists(e.target); });
-    function extractQuickDestinations() {
-        const qSelect = document.getElementById('quickDest'); const qSelectOrder = document.getElementById('quickDestOrder');
-        qSelect.innerHTML = '<option value="">-- Бързи дестинации --</option>'; if(qSelectOrder) qSelectOrder.innerHTML = '<option value="">-- Бързи дестинации --</option>';
-        let dests = new Set();
-        allLogs.forEach(log => { if(log[6] && log[6].includes('➔')) { let parts = log[6].split('➔'); if(parts[1]) dests.add(parts[1].trim()); } });
-        dests.forEach(d => { qSelect.appendChild(new Option(d, d)); if(qSelectOrder) qSelectOrder.appendChild(new Option(d, d)); });
-    }
-    async function applyQuickDest(selectId) { 
-        const v = document.getElementById(selectId).value; if(!v) return; 
-        const targetEl = document.getElementById(lastFocusedLocInput);
-        if (targetEl && targetEl.readOnly) { alert("⚠️ Отключете полето!"); document.getElementById(selectId).value = ''; return; }
-        if (targetEl) {
-            targetEl.value = v; targetEl.removeAttribute('data-lat'); targetEl.removeAttribute('data-lon');
-            try { const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(v)}&countrycodes=bg&limit=1`);
-                const data = await res.json(); if (data.length > 0) { targetEl.dataset.lat = data[0].lat; targetEl.dataset.lon = data[0].lon; calcRouteOSM(); }
-            } catch(e) {}
-        }
-        document.getElementById(selectId).value = '';
-    }
-    async function calcRouteOSM() {
-        const start = document.getElementById('locStart'); const end = document.getElementById('locEnd'); const coords = [];
-        if(start.dataset.lon && start.dataset.lat) coords.push(`${start.dataset.lon},${start.dataset.lat}`);
-        for(let i=1; i<=wpCount; i++) { const wp = document.getElementById('wp_'+i); if(wp && wp.dataset.lon && wp.dataset.lat && wp.value.trim() !== '') coords.push(`${wp.dataset.lon},${wp.dataset.lat}`); }
-        if(end.dataset.lon && end.dataset.lat) coords.push(`${end.dataset.lon},${end.dataset.lat}`); else return;
-        if (coords.length < 2) return;
-        try { const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coords.join(';')}?overview=false`); const data = await res.json();
-            if (data.code === 'Ok' && data.routes.length > 0) {
-                calculatedMapDistance = Math.round(data.routes[0].distance / 1000);
-                const sKm = parseInt(document.getElementById('tripKmStart').value) || 0;
-                if(sKm > 0) { const sBox = document.getElementById('suggestionBox'); sBox.innerText = `💡 GPS: ~${calculatedMapDistance} км. Натисни тук.`; sBox.style.display = 'inline-block'; sBox.dataset.val = sKm + calculatedMapDistance; }
+    
+    function renderArchiveTable() {
+        const b = document.getElementById('archiveTableBody'); b.innerHTML = ''; 
+        let fA = archiveDB.filter(r => r.docType === archiveFilter).reverse();
+        fA.forEach(r => { 
+            const c = r.invNum && r.invNum.trim() !== ""; 
+            let invText = c ? `<span style="font-size:11px; font-weight:bold;">№ ${r.invNum}</span><br><span style="font-size:10px;">${r.invDate}</span>` : `<button type="button" style="background:#e67e22; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="openArchiveEditor('${r.id}')">Въведи</button>`;
+            let bdg = r.docType === 'tok' ? '<span class="badge badge-tok">⚡ ТОК</span>' : '<span class="badge badge-voda">💧 ВОДА</span>';
+            
+            let repTxt = "";
+            if (r.lastReadT2 && r.lastReadT2 !== "undefined") {
+                repTxt = `T1: ${r.lastReadT1}<br>T2: ${r.lastReadT2}`;
+            } else {
+                repTxt = `${r.lastReadT1}`;
             }
-        } catch(e) {}
+
+            b.innerHTML += `<tr style="background:${c?'#e8f8f5':'#fff9c4'}; border-left:4px solid ${c?'#2ecc71':'#f1c40f'};">
+                <td style="font-size:11px; color:#555;">${bdg}<br>${r.createdAt ? new Date(r.createdAt).toLocaleDateString('bg-BG') : ""}</td>
+                <td style="font-size:11px;"><strong>${r.client}</strong></td>
+                <td style="font-size:11px;"><strong style="color:var(--primary);">${r.period}</strong><br>Отчет: ${repTxt}</td>
+                <td style="font-size: 13px;"><strong>${r.totalVat} €</strong></td>
+                <td style="text-align:center;">${invText}</td>
+                <td style="text-align:center;"><span class="action-btn action-edit" onclick="openArchiveEditor('${r.id}')">✎</span></td>
+            </tr>`; 
+        });
     }
-    function applySuggestion() { document.getElementById('tripKmEnd').value = document.getElementById('suggestionBox').dataset.val; calcTotalKM(); }
+    function openArchiveEditor(id) { const r = archiveDB.find(x => String(x.id) === String(id)); if(!r) return; document.getElementById('archEditId').value = r.id; document.getElementById('archEditInvNum').value = r.invNum || ""; document.getElementById('archiveEditor').style.display = 'block'; setTimeout(() => { window.scrollTo(0, document.getElementById('archiveEditor').offsetTop - 20); }, 100); }
+    function closeArchiveEditor() { document.getElementById('archiveEditor').style.display = 'none'; }
+    function saveArchiveRecord() { 
+        let i = document.getElementById('archEditId').value, n = document.getElementById('archEditInvNum').value, d = document.getElementById('archEditInvDate').value; 
+        if(d && d.includes('-')) { const [y, m, day] = d.split('-'); d = `${day}.${m}.${y}`; }
+        showLoader(); callAPI('updateArchiveInvoice', { id: i, invNum: n, invDate: d }).then(r => { archiveDB=r; closeArchiveEditor(); renderArchiveTable(); hideLoader(); }).catch(e=>{ hideLoader(); alert("Грешка при обновяване на фактура: " + e.toString()); });
+    }
 </script>
 </body>
 </html>
